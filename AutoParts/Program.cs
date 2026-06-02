@@ -56,7 +56,7 @@ using (var scope = app.Services.CreateScope())
 	var services = scope.ServiceProvider;
 	try
 	{
-		await Seeder.SeedDataAsync(services, app.Environment, builder.Configuration);
+		//await Seeder.SeedDataAsync(services, app.Environment, builder.Configuration);
 	}
 	catch (Exception ex)
 	{
