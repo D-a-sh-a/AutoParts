@@ -1,22 +1,238 @@
-html {
-  font-size: 14px;
+.container-fluid {
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.text-danger {
+    color: #ef233c !important;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn-search {
+    background-color: #ef233c !important;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+    .btn-search:hover:not(:disabled) {
+        background-color: #d90429 !important;
+        color: white;
+    }
+
+.search-bar-wrapper {
+    background-color: #fff;
+    border: 2px solid #ef233c;
+    border-radius: 8px;
+    padding: 4px;
+    transition: box-shadow 0.3s;
+}
+
+    .search-bar-wrapper:focus-within {
+        box-shadow: 0 0 15px rgba(239, 35, 60, 0.3);
+    }
+
+    .search-bar-wrapper input:focus {
+        box-shadow: none;
+        outline: none;
+    }
+
+.border-bottom-red {
+    border-bottom: 2px solid #ef233c;
+    display: inline-block;
+    margin-bottom: -2px;
+}
+
+.product-card {
+    transition: all 0.3s ease;
+}
+
+    .product-card:hover {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+.product-img-wrapper {
+    position: relative;
+    background-color: #fff;
+    border-radius: 8px 8px 0 0;
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #999;
+}
+
+    .wishlist-btn:hover {
+        color: #ef233c;
+    }
+
+.stars {
+    font-size: 0.8rem;
+}
+
+.add-cart-btn {
+    width: 40px;
+    height: 40px;
+    background-color: #f1f3f5;
+    border: none;
+    transition: 0.3s;
+}
+
+.product-card:hover .add-cart-btn {
+    background-color: #ef233c;
+    color: white;
+}
+
+.product-card:hover .secondary-img {
+    opacity: 1 !important;
+}
+
+.product-card:hover .fade-on-hover {
+    opacity: 0 !important;
+}
+
+.product-name {
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.product-card:hover .product-name {
+    color: #ef233c !important;
 }
 
 body {
-  margin-bottom: 60px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+}
+
+.dark-footer {
+    background-color: #1a1a1a;
+    color: #999;
+}
+
+.footer-links a {
+    color: #999;
+    text-decoration: none;
+    transition: 0.3s;
+    display: block;
+    margin-bottom: 12px;
+}
+
+    .footer-links a:hover {
+        color: #ef233c;
+        padding-left: 5px;
+    }
+
+.social-icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #333;
+    color: #fff;
+    border-radius: 4px;
+    margin-right: 10px;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+    .social-icons a:hover {
+        background: #ef233c;
+        transform: translateY(-3px);
+    }
+
+.footer-bottom {
+    border-top: 1px solid #333;
+    background-color: #111;
+}
+
+.noUi-connect {
+    background-color: #ef233c !important;
+    background: #ef233c !important;
+}
+
+.noUi-handle:before,
+.noUi-handle:after {
+    display: none !important;
+}
+
+#yearDropdownButton,
+.custom-select-btn,
+.vehicle-filter-bar .btn-primary:not(.btn-search):not(#searchBtn) {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #212529 !important;
+    border: 1px solid #ced4da !important;
+}
+
+    #yearDropdownButton:hover,
+    .custom-select-btn:hover {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+    }
+
+    #yearDropdownButton:focus,
+    #yearDropdownButton:active,
+    #yearDropdownButton[aria-expanded="true"],
+    .custom-select-btn:focus,
+    .custom-select-btn:active,
+    .custom-select-btn[aria-expanded="true"] {
+        background-color: #ffffff !important;
+        color: #212529 !important;
+        border-color: #ef233c !important;
+        box-shadow: 0 0 0 0.25rem rgba(239, 35, 60, 0.25) !important;
+    }
+
+        #yearDropdownButton:focus .dropdown-toggle-icon,
+        #yearDropdownButton[aria-expanded="true"] .dropdown-toggle-icon,
+        .custom-select-btn:focus .dropdown-toggle-icon,
+        .custom-select-btn[aria-expanded="true"] .dropdown-toggle-icon {
+            color: #ef233c !important;
+        }
+
+.year-dropdown-menu .year-btn:focus,
+.year-dropdown-menu .year-btn:active,
+.year-dropdown-menu .year-btn.active,
+.year-dropdown-menu .year-btn.selected,
+.year-dropdown-menu .btn-primary,
+.year-dropdown-menu .bg-primary {
+    background-color: #ef233c !important;
+    background: #ef233c !important;
+    border-color: #ef233c !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 0.25rem rgba(239, 35, 60, 0.25) !important;
+}
+
+.year-dropdown-menu .year-btn:hover:not(.disabled) {
+    background-color: rgba(239, 35, 60, 0.1) !important;
+    border-color: #ef233c !important;
+    color: #ef233c !important;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+    background-color: #ef233c !important;
+    color: white !important;
+}
+
+.dropdown-menu .dropdown-item:active {
+    background-color: #d90429 !important;
+    color: white !important;
+}
+
+.form-select:focus,
+.custom-sort-select:focus {
+    border-color: #ef233c !important;
+    box-shadow: 0 0 0 0.25rem rgba(239, 35, 60, 0.25) !important;
 }

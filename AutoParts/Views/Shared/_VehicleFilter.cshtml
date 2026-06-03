@@ -1,0 +1,89 @@
+﻿<div class="vehicle-filter-bar text-start shadow-lg">
+    <form action="#" method="get">
+        <div class="row g-2 align-items-end">
+
+            <div class="col-md-2">
+                <label class="text-muted small ms-1 mb-1 fw-bold">Рік</label>
+                <div class="dropdown">
+                    <button class="btn custom-select-btn w-100 text-start d-flex justify-content-between align-items-center" type="button" id="yearDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                        <span id="yearBtnText">Оберіть...</span>
+                        <span class="dropdown-toggle-icon">▼</span>
+                    </button>
+
+                    <div class="dropdown-menu year-dropdown-menu" aria-labelledby="yearDropdownButton">
+                        <div class="decade-row">
+                            <div class="decade-label">2020-і</div>
+                            <div class="decade-years">
+                                <button type="button" class="year-btn" data-year="2020">2020</button>
+                                <button type="button" class="year-btn active-year" data-year="2021">2021</button>
+                                <button type="button" class="year-btn disabled" data-year="2022" disabled>2022</button>
+                            </div>
+                        </div>
+                        <div class="decade-row">
+                            <div class="decade-label">2010-і</div>
+                            <div class="decade-years">
+                                <button type="button" class="year-btn" data-year="2010">2010</button>
+                                <button type="button" class="year-btn" data-year="2011">2011</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="yearValue" value="" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="text-muted small ms-1 mb-1 fw-bold">Марка</label>
+                <div class="dropdown">
+                    <button class="btn custom-select-btn w-100 text-start d-flex justify-content-between align-items-center" type="button" id="makeDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        <span id="makeBtnText">Оберіть...</span>
+                        <span class="dropdown-toggle-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="makeDropdownMenu" aria-labelledby="makeDropdownButton"></ul>
+                </div>
+                <input type="hidden" id="makeValue" value="" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="text-muted small ms-1 mb-1 fw-bold">Модель</label>
+                <div class="dropdown">
+                    <button class="btn custom-select-btn w-100 text-start d-flex justify-content-between align-items-center" type="button" id="modelDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        <span id="modelBtnText">Оберіть...</span>
+                        <span class="dropdown-toggle-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="modelDropdownMenu" aria-labelledby="modelDropdownButton"></ul>
+                </div>
+                <input type="hidden" id="modelValue" value="" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="text-muted small ms-1 mb-1 fw-bold">Кузов</label>
+                <div class="dropdown">
+                    <button class="btn custom-select-btn w-100 text-start d-flex justify-content-between align-items-center" type="button" id="bodyDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        <span id="bodyBtnText">Оберіть...</span>
+                        <span class="dropdown-toggle-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="bodyDropdownMenu" aria-labelledby="bodyDropdownButton"></ul>
+                </div>
+                <input type="hidden" id="bodyValue" value="" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="text-muted small ms-1 mb-1 fw-bold">Двигун</label>
+                <div class="dropdown">
+                    <button class="btn custom-select-btn w-100 text-start d-flex justify-content-between align-items-center" type="button" id="engineDropdownButton" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        <span id="engineBtnText">Оберіть...</span>
+                        <span class="dropdown-toggle-icon">▼</span>
+                    </button>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="engineDropdownMenu" aria-labelledby="engineDropdownButton"></ul>
+                </div>
+                <input type="hidden" id="engineValue" value="" />
+            </div>
+
+            <div class="col-md-2">
+                <input type="hidden" id="finalVehicleId" name="vehicleId" value="" />
+                <button type="submit" id="searchBtn" class="btn btn-search w-100" style="height: 50px;" disabled>ПОШУК</button>
+            </div>
+
+        </div>
+    </form>
+</div>
