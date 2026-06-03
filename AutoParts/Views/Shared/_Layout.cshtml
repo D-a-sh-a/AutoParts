@@ -30,8 +30,32 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" href="*">Каталог</a>
+                        <li class="nav-item dropdown catalog-dropdown">
+                            <a class="nav-link text-dark fw-bold" href="/Catalog/Search" id="catalogMenuLink">
+                                Каталог <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <div class="dropdown-menu shadow-lg border-0 p-4 mt-0" aria-labelledby="catalogMenuLink" style="width: 500px;">
+                                <div class="row">
+                                    <div class="col-6 border-end">
+                                        <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Категорії</h6>
+                                        <ul class="list-unstyled mb-0 catalog-links">
+                                            <li><a href="/Catalog/Search?categories=1" class="text-decoration-none text-dark d-block py-1">Двигун</a></li>
+                                            <li><a href="/Catalog/Search?categories=2" class="text-decoration-none text-dark d-block py-1">Гальмівна система</a></li>
+                                            <li><a href="/Catalog/Search?categories=3" class="text-decoration-none text-dark d-block py-1">Фільтри</a></li>
+                                            <li><a href="/Catalog/Search?categories=4" class="text-decoration-none text-dark d-block py-1">Електрика</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-6 ps-4">
+                                        <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-star me-2"></i>Популярні бренди</h6>
+                                        <ul class="list-unstyled mb-0 catalog-links">
+                                            <li><a href="/Catalog/Search?brands=1" class="text-decoration-none text-dark d-block py-1">Bosch</a></li>
+                                            <li><a href="/Catalog/Search?brands=2" class="text-decoration-none text-dark d-block py-1">Brembo</a></li>
+                                            <li><a href="/Catalog/Search?brands=3" class="text-decoration-none text-dark d-block py-1">Mann-Filter</a></li>
+                                            <li><a href="/Catalog/Search?brands=4" class="text-decoration-none text-dark d-block py-1">Valeo</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Contact" asp-action="Index">Контакти</a>
