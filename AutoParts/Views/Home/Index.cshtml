@@ -1,18 +1,17 @@
-﻿@{
+﻿@model AutoParts.ViewModels.HomeViewModel
+@{
     ViewData["Title"] = "Головна";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/home.css" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 }
 
 <section class="hero-section text-center">
     <div class="container">
         <h1 class="hero-title mb-5">Підберіть <span class="text-danger">Ідеальні</span> Запчастини</h1>
 
-        <div class="vehicle-filter-placeholder border rounded bg-white p-3 shadow-sm">
-            <partial name="_VehicleFilter" />
-        </div>
+        <partial name="_VehicleFilter" model="Model.AvailableYears" />
     </div>
 </section>
 
@@ -20,11 +19,9 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <form action="#" method="get" class="search-bar-wrapper shadow-sm bg-white rounded">
+                <form action="/Catalog/Search" method="get" class="search-bar-wrapper shadow-sm bg-white rounded">
                     <div class="input-group">
-                        <span class="input-group-text bg-transparent border-0 ps-3">
-                            <i class="fa-solid fa-magnifying-glass text-muted"></i>
-                        </span>
+                        <span class="input-group-text bg-transparent border-0 ps-3"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                         <input type="text" name="query" class="form-control form-control-lg border-0 shadow-none" placeholder="Пошук за категорією або товаром...">
                         <button type="submit" class="btn btn-search px-4">ЗНАЙТИ</button>
                     </div>
@@ -35,25 +32,31 @@
 </div>
 
 <div class="container mt-5">
+
     <h3 class="fw-bold mb-4">Популярні категорії</h3>
+
     <div class="position-relative mb-5">
         <button class="category-nav-btn left-btn" id="catScrollLeft">
             <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <div class="category-scroll-container" id="categoryContainer">
-            <div class="category-card">
-                <i class="fa-solid fa-gears fa-3x text-secondary mb-3 d-block"></i>
-                <h6 class="fw-bold m-0">Двигун</h6>
-            </div>
-            <div class="category-card">
-                <i class="fa-solid fa-car-battery fa-3x text-secondary mb-3 d-block"></i>
-                <h6 class="fw-bold m-0">Електрика</h6>
-            </div>
-            <div class="category-card">
-                <i class="fa-solid fa-oil-can fa-3x text-secondary mb-3 d-block"></i>
-                <h6 class="fw-bold m-0">Масла та хімія</h6>
-            </div>
+            @foreach (var cat in Model.Categories)
+            {
+                <a href="/Catalog/Search?categories=@cat.Id" class="text-decoration-none text-dark">
+                    <div class="category-card">
+                        @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                        {
+                            <img src="@cat.ImageUrl" alt="@cat.Name">
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-gears fa-3x text-secondary mb-3 d-block"></i>
+                        }
+                        <h6 class="fw-bold m-0">@cat.Name</h6>
+                    </div>
+                </a>
+            }
         </div>
 
         <button class="category-nav-btn right-btn" id="catScrollRight">
@@ -67,45 +70,30 @@
     </div>
 
     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-4 mb-5">
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm">
-                <img src="/img/placeholder.jpg" class="card-img-top" alt="Товар">
-                <div class="card-body text-center">
-                    <h6 class="card-title">Гальмівні колодки</h6>
-                    <p class="text-danger fw-bold m-0">1200 грн</p>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm">
-                <img src="/img/placeholder.jpg" class="card-img-top" alt="Товар">
-                <div class="card-body text-center">
-                    <h6 class="card-title">Фільтр масляний</h6>
-                    <p class="text-danger fw-bold m-0">450 грн</p>
-                </div>
-            </div>
-        </div>
+        @foreach (var part in Model.FeaturedParts)
+        {
+            <partial name="_ProductCard" model="part" />
+        }
     </div>
 </div>
-
 <section class="brands-section">
     <div class="container text-center">
         <h2 class="text-white mb-5 fw-bold">Обирайте за брендами</h2>
+
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 justify-content-center">
-            <div class="col">
-                <a href="#" class="brand-card">
-                    <div class="bg-white p-3 rounded h-100 d-flex align-items-center justify-content-center">Бренд 1</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="brand-card">
-                    <div class="bg-white p-3 rounded h-100 d-flex align-items-center justify-content-center">Бренд 2</div>
-                </a>
-            </div>
+            @foreach (var brand in Model.Brands)
+            {
+                <div class="col">
+                    <a href="/Catalog/Search?brands=@brand.Id" class="brand-card">
+                        <img src="@brand.ImageUrl" alt="@brand.Name" title="@brand.Name">
+                    </a>
+                </div>
+            }
         </div>
     </div>
+</div>
 </section>
 
 @section Scripts {
-    <script src="~/js/home.js"></script>
+    <script src="~/js/home.js" asp-append-version="true"></script>
 }
