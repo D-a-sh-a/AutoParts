@@ -1,5 +1,7 @@
-﻿<div class="vehicle-filter-bar text-start shadow-lg">
-    <form action="#" method="get">
+﻿@model List<int>
+
+<div class="vehicle-filter-bar text-start shadow-lg">
+    <form action="/Catalog/Search" method="get">
         <div class="row g-2 align-items-end">
 
             <div class="col-md-2">
@@ -9,23 +11,23 @@
                         <span id="yearBtnText">Оберіть...</span>
                         <span class="dropdown-toggle-icon">▼</span>
                     </button>
-
                     <div class="dropdown-menu year-dropdown-menu" aria-labelledby="yearDropdownButton">
-                        <div class="decade-row">
-                            <div class="decade-label">2020-і</div>
-                            <div class="decade-years">
-                                <button type="button" class="year-btn" data-year="2020">2020</button>
-                                <button type="button" class="year-btn active-year" data-year="2021">2021</button>
-                                <button type="button" class="year-btn disabled" data-year="2022" disabled>2022</button>
+                        @{
+                            var decades = new List<int> { 2020, 2010, 2000, 1990, 1980 };
+                        }
+                        @foreach (var decade in decades)
+                        {
+                            <div class="decade-row">
+                                <div class="decade-label">@decade-і</div>
+                                <div class="decade-years">
+                                    @for (int y = decade; y <= decade + 9; y++)
+                                    {
+                                        bool isAvailable = Model != null && Model.Contains(y);
+                                        <button type="button" class="year-btn @(isAvailable ? "" : "disabled")" data-year="@y" @(isAvailable ? "" : "disabled")>@y</button>
+                                    }
+                                </div>
                             </div>
-                        </div>
-                        <div class="decade-row">
-                            <div class="decade-label">2010-і</div>
-                            <div class="decade-years">
-                                <button type="button" class="year-btn" data-year="2010">2010</button>
-                                <button type="button" class="year-btn" data-year="2011">2011</button>
-                            </div>
-                        </div>
+                        }
                     </div>
                 </div>
                 <input type="hidden" id="yearValue" value="" />
@@ -38,7 +40,8 @@
                         <span id="makeBtnText">Оберіть...</span>
                         <span class="dropdown-toggle-icon">▼</span>
                     </button>
-                    <ul class="dropdown-menu filter-dropdown-menu" id="makeDropdownMenu" aria-labelledby="makeDropdownButton"></ul>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="makeDropdownMenu" aria-labelledby="makeDropdownButton">
+                    </ul>
                 </div>
                 <input type="hidden" id="makeValue" value="" />
             </div>
@@ -50,7 +53,8 @@
                         <span id="modelBtnText">Оберіть...</span>
                         <span class="dropdown-toggle-icon">▼</span>
                     </button>
-                    <ul class="dropdown-menu filter-dropdown-menu" id="modelDropdownMenu" aria-labelledby="modelDropdownButton"></ul>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="modelDropdownMenu" aria-labelledby="modelDropdownButton">
+                    </ul>
                 </div>
                 <input type="hidden" id="modelValue" value="" />
             </div>
@@ -62,7 +66,8 @@
                         <span id="bodyBtnText">Оберіть...</span>
                         <span class="dropdown-toggle-icon">▼</span>
                     </button>
-                    <ul class="dropdown-menu filter-dropdown-menu" id="bodyDropdownMenu" aria-labelledby="bodyDropdownButton"></ul>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="bodyDropdownMenu" aria-labelledby="bodyDropdownButton">
+                    </ul>
                 </div>
                 <input type="hidden" id="bodyValue" value="" />
             </div>
@@ -74,7 +79,8 @@
                         <span id="engineBtnText">Оберіть...</span>
                         <span class="dropdown-toggle-icon">▼</span>
                     </button>
-                    <ul class="dropdown-menu filter-dropdown-menu" id="engineDropdownMenu" aria-labelledby="engineDropdownButton"></ul>
+                    <ul class="dropdown-menu filter-dropdown-menu" id="engineDropdownMenu" aria-labelledby="engineDropdownButton">
+                    </ul>
                 </div>
                 <input type="hidden" id="engineValue" value="" />
             </div>
@@ -83,7 +89,6 @@
                 <input type="hidden" id="finalVehicleId" name="vehicleId" value="" />
                 <button type="submit" id="searchBtn" class="btn btn-search w-100" style="height: 50px;" disabled>ПОШУК</button>
             </div>
-
         </div>
     </form>
 </div>
