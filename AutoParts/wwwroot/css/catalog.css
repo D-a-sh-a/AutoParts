@@ -1,0 +1,55 @@
+﻿
+
+.form-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%236c757d" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 18px !important;
+    padding-right: 35px !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+    .form-select:focus,
+    .form-control:focus,
+    .custom-sort-select:focus,
+    .filter-select:focus {
+        border-color: #ef233c !important;
+        box-shadow: 0 0 0 0.25rem rgba(239, 35, 60, 0.25) !important;
+        outline: 0 !important;
+    }
+
+    .form-select:focus {
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23ef233c" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') !important;
+    }
+
+    .form-select option:checked {
+        background: #ef233c linear-gradient(0deg, #ef233c 0%, #ef233c 100%) !important;
+        color: white !important;
+    }
+
+.price-input-visible {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    width: 45%;
+    font-weight: 500;
+    height: 38px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+    .price-input-visible:focus {
+        border-color: #ef233c !important;
+        box-shadow: 0 0 0 0.25rem rgba(239, 35, 60, 0.25) !important;
+    }
+
+    .price-input-visible::-webkit-outer-spin-button,
+    .price-input-visible::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .price-input-visible[type=number] {
+        -moz-appearance: textfield;
+    }
