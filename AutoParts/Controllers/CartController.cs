@@ -1,5 +1,6 @@
 ﻿using AutoParts.Data;
 using AutoParts.Models;
+using AutoParts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,15 +15,22 @@ namespace AutoParts.Controllers
 			_context = context;
 		}
 
-		private string GetCartId()
+		[HttpGet]
+		public async Task<IActionResult> Index()
 		{
-			var cartId = HttpContext.Session.GetString("CartId");
-			if (string.IsNullOrEmpty(cartId))
+			var cartId = GetCartId();
+
+			var items = await _context.CartItems
+				.Include(c => c.AutoPart)
+				.Where(c => c.CartId == cartId)
+				.ToListAsync();
+
+			var viewModel = new CartViewModel
 			{
-				cartId = Guid.NewGuid().ToString();
-				HttpContext.Session.SetString("CartId", cartId);
-			}
-			return cartId;
+				Items = items
+			};
+
+			return View(viewModel);
 		}
 
 		[HttpPost]
@@ -49,8 +57,53 @@ namespace AutoParts.Controllers
 			}
 
 			await _context.SaveChangesAsync();
-
 			return RedirectRequest();
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> RemoveFromCart(int id)
+		{
+			var cartId = GetCartId();
+
+			var cartItem = await _context.CartItems
+				.FirstOrDefaultAsync(c => c.Id == id && c.CartId == cartId);
+
+			if (cartItem != null)
+			{
+				_context.CartItems.Remove(cartItem);
+				await _context.SaveChangesAsync();
+			}
+
+			return RedirectToAction("Index");
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> UpdateQuantity(int id, int quantity)
+		{
+			if (quantity < 1) return RedirectToAction("Index");
+
+			var cartId = GetCartId();
+			var cartItem = await _context.CartItems
+				.FirstOrDefaultAsync(c => c.Id == id && c.CartId == cartId);
+
+			if (cartItem != null)
+			{
+				cartItem.Quantity = quantity;
+				await _context.SaveChangesAsync();
+			}
+
+			return RedirectToAction("Index");
+		}
+
+		private string GetCartId()
+		{
+			var cartId = HttpContext.Session.GetString("CartId");
+			if (string.IsNullOrEmpty(cartId))
+			{
+				cartId = Guid.NewGuid().ToString();
+				HttpContext.Session.SetString("CartId", cartId);
+			}
+			return cartId;
 		}
 
 		private IActionResult RedirectRequest()
