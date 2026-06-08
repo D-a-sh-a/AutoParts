@@ -30,8 +30,8 @@ namespace AutoParts.Controllers
 				Items = items
 			};
 
-			return View(viewModel);
-		}
+            return View("~/Views/UserItems/Cart.cshtml", viewModel);
+        }
 
 		[HttpPost]
 		public async Task<IActionResult> AddToCart(int partId, int quantity = 1)
