@@ -18,31 +18,41 @@
         </div>
     </div>
 
-    <div class="active-vehicle-banner shadow-sm flex-column align-items-stretch mb-4 p-3 bg-white rounded border">
-        <div class="d-flex justify-content-between align-items-center w-100">
-            <div class="d-flex align-items-center">
-                <i class="fa-solid fa-car-side fs-2 text-danger me-3"></i>
-                <div>
-                    <span class="text-muted small d-block mb-1">Обраний автомобіль:</span>
-                    <h1 class="active-vehicle-title m-0 fs-4 fw-bold text-dark">
-                        @(Model.ActiveVehicle != null ? $"{Model.ActiveVehicle.Make?.Name} {Model.ActiveVehicle.Model?.Name} {Model.ActiveVehicle.Year}" : "Усі автомобілі")
-                    </h1>
+    @if (Model.ActiveVehicle == null)
+    {
+        <div class="mb-4 shadow-sm bg-white rounded border p-3">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-car text-danger me-2"></i>Оберіть автомобіль для точного підбору:</h5>
+            <partial name="_VehicleFilter" model="Model.AvailableYears" />
+        </div>
+    }
+    else
+    {
+        <div class="active-vehicle-banner shadow-sm flex-column align-items-stretch mb-4 p-3 bg-white rounded border">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="d-flex align-items-center">
+                    <i class="fa-solid fa-car-side fs-2 text-danger me-3"></i>
+                    <div>
+                        <span class="text-muted small d-block mb-1">Обраний автомобіль:</span>
+                        <h1 class="active-vehicle-title m-0 fs-4 fw-bold text-dark">
+                            @($"{Model.ActiveVehicle.Make?.Name} {Model.ActiveVehicle.Model?.Name} {Model.ActiveVehicle.Year}")
+                        </h1>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary px-4 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#changeVehicleCollapse">Змінити авто</button>
+            </div>
+
+            <div class="collapse mt-3" id="changeVehicleCollapse">
+                <div class="pt-3 border-top">
+                    <partial name="_VehicleFilter" model="Model.AvailableYears" />
                 </div>
             </div>
-            <button class="btn btn-outline-secondary px-4 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#changeVehicleCollapse">Змінити авто</button>
         </div>
-
-        <div class="collapse mt-3" id="changeVehicleCollapse">
-            <div class="pt-3 border-top">
-                <partial name="_VehicleFilter" model="Model.AvailableYears" />
-            </div>
-        </div>
-    </div>
+    }
 
     <div class="row">
         <div class="col-lg-3 mb-4">
             <div class="catalog-sidebar shadow-sm p-3 bg-white rounded border">
-                <form id="filterForm" method="get" action="/Catalog/Search">
+                <form id="filterForm" method="get" asp-controller="Catalog" asp-action="Search">
                     <input type="hidden" name="vehicleId" value="@Model.SelectedVehicleId" />
 
                     <div class="filter-section pb-2 border-bottom mb-3">
@@ -52,8 +62,8 @@
                             <span class="mx-2 text-muted fw-bold">-</span>
                             <input type="number" class="form-control text-center price-input-visible" id="maxPriceInput" name="maxPrice" value="@Model.SelectedMaxPrice">
                         </div>
-                        <div class="px-1 mb-3 text-center text-muted py-2 bg-light rounded border border-dashed">
-                            <small>[Тут буде Повзунок]</small>
+                        <div class="px-1 mb-3">
+                            <div id="price-slider" data-catalog-min="@Model.CatalogMinPrice.ToString("0")" data-catalog-max="@Model.CatalogMaxPrice.ToString("0")"></div>
                         </div>
                     </div>
 
