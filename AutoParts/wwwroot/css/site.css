@@ -11,6 +11,7 @@
 .btn-search {
     background-color: #ef233c !important;
     color: white;
+    color: white;
     border-radius: 8px;
     font-weight: bold;
 }
@@ -109,6 +110,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    padding-top: 65px;
 }
 
 main {
@@ -121,7 +123,7 @@ main {
 }
 
 .footer-links a {
-    color: #999;
+    color: #0d6efd;
     text-decoration: none;
     transition: 0.3s;
     display: block;
@@ -247,3 +249,19 @@ main {
         transition: all 0.2s ease;
     }
 }
+
+.user-nav-btn {
+    transition: color 0.2s ease-in-out;
+}
+
+    .user-nav-btn:hover {
+        color: #dc3545 !important;
+    }
+
+    .user-nav-btn i {
+        transition: transform 0.2s ease;
+    }
+
+    .user-nav-btn:hover i {
+        transform: scale(1.1);
+    }

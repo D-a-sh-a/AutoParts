@@ -6,25 +6,23 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Autoparts</title>
+    <title>@ViewData["Title"] - AutoParts</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="~/Autoparts.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AutoParts.styles.css" asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow fixed-top">
             <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center text-decoration-none" href="@Url.Action("Index", "Home")">
                     <svg width="35" height="35" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2">
                         <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#ef233c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="#212529" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-
                     <span class="fw-bold text-dark fs-4">AUTO<span class="text-danger">PARTS</span></span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -39,7 +37,6 @@
                             </a>
                             <div class="dropdown-menu shadow-lg border-0 p-4 mt-0" aria-labelledby="catalogMenuLink" style="width: 500px;">
                                 <div class="row">
-
                                     <div class="col-6 border-end">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Категорії</h6>
                                         <ul class="list-unstyled mb-0 catalog-links">
@@ -53,7 +50,6 @@
                                             <li><a href="/Catalog/Search" class="text-danger text-decoration-none small fw-bold d-block mt-2">Всі категорії <i class="fa-solid fa-arrow-right"></i></a></li>
                                         </ul>
                                     </div>
-
                                     <div class="col-6 ps-4">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-star me-2"></i>Популярні бренди</h6>
                                         <ul class="list-unstyled mb-0 catalog-links">
@@ -67,14 +63,41 @@
                                             <li><a href="/Catalog/Search" class="text-danger text-decoration-none small fw-bold d-block mt-2">Всі бренди <i class="fa-solid fa-arrow-right"></i></a></li>
                                         </ul>
                                     </div>
-
                                 </div>
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Contact" asp-action="Index">Контакти</a>
+                            <a class="nav-link text-dark" asp-controller="Contact" asp-action="Index">Контакти</a>
                         </li>
                     </ul>
+
+                    <div class="d-flex align-items-center gap-4 ms-auto mt-2 mt-sm-0 me-2">
+                        <a href="/Profile" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                            <i class="fa-regular fa-user fs-5 mb-1"></i>
+                            <span style="font-size: 0.75rem;" class="fw-semibold">Кабінет</span>
+                        </a>
+
+                        <a href="/UserItems/Favorites" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                            <div class="position-relative">
+                                <i class="fa-regular fa-heart fs-5 mb-1"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
+                                    0
+                                </span>
+                            </div>
+                            <span style="font-size: 0.75rem;" class="fw-semibold">Улюблені</span>
+                        </a>
+
+                        <a href="/Cart" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                            <div class="position-relative">
+                                <i class="fa-solid fa-bag-shopping fs-5 mb-1"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
+                                    0
+                                </span>
+                            </div>
+                            <span style="font-size: 0.75rem;" class="fw-semibold">Кошик</span>
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </nav>
@@ -89,7 +112,7 @@
         <div class="container pt-5 pb-4">
             <div class="row">
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <h4 class="text-white mb-3 fw-bold">AUTOPARTS</h4>
+                    <h4 class="text-white mb-3 fw-bold">AutoParts</h4>
                     <p class="text-muted small">Ваш надійний партнер у світі автозапчастин.</p>
                     <ul class="list-unstyled text-muted small">
                         <li class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> м. Рівне, вул. Соборна, 1</li>

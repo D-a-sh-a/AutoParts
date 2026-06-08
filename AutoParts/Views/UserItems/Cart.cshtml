@@ -1,0 +1,91 @@
+﻿@model AutoParts.ViewModels.CartViewModel
+
+@{
+    ViewData["Title"] = "Мій кошик";
+}
+
+<div class="container my-5">
+    <h2 class="mb-4 fw-bold">Мій кошик</h2>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="text-center py-5 shadow-sm bg-white rounded border">
+            <i class="fa-solid fa-cart-shopping fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">Ваш кошик порожній</h4>
+            <p class="text-muted mb-4">Але це ніколи не пізно виправити!</p>
+            <a href="/Catalog/Search" class="btn btn-search px-4 py-2">Перейти до каталогу</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-0 table-responsive">
+                        <table class="table mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th scope="col" class="ps-4 py-3">Товар</th>
+                                    <th scope="col">Ціна</th>
+                                    <th scope="col" class="text-center">Кількість</th>
+                                    <th scope="col">Сума</th>
+                                    <th scope="col" class="pe-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <img src="@(item.AutoPart.ImageUrls != null && item.AutoPart.ImageUrls.Any() ? item.AutoPart.ImageUrls.First() : "/images/no-image.jpg")" alt="@item.AutoPart.Name" style="width: 60px; height: 60px; object-fit: contain;" class="me-3" />                                                <div>
+                                                <h6 class="mb-0 fw-bold">@item.AutoPart.Name</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@item.AutoPart.Price.ToString("0") грн</td>
+
+                                    <td class="text-center">
+                                        <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" class="d-flex justify-content-center">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control text-center mx-1" style="width: 70px;" onchange="this.form.submit()" />
+                                        </form>
+                                    </td>
+
+                                    <td class="fw-bold">@((item.AutoPart.Price * item.Quantity).ToString("0")) грн</td>
+
+                                    <td class="pe-4 text-end">
+                                        <form asp-controller="Cart" asp-action="RemoveFromCart" method="post">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Видалити">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4">Підсумок</h4>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Всього товарів:</span>
+                        <span class="fw-bold">@Model.Items.Sum(i => i.Quantity) шт.</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4 border-bottom pb-3">
+                        <span class="fw-bold fs-5">До сплати:</span>
+                        <span class="fw-bold fs-5 text-danger">@Model.TotalSum.ToString("0") грн</span>
+                    </div>
+                    <a href="/Order/Checkout" class="btn btn-search w-100 py-2 fs-5">ОФОРМИТИ ЗАМОВЛЕННЯ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
