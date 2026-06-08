@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using AutoParts.Data
+@inject ApplicationDbContext DbContext
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -36,24 +39,35 @@
                             </a>
                             <div class="dropdown-menu shadow-lg border-0 p-4 mt-0" aria-labelledby="catalogMenuLink" style="width: 500px;">
                                 <div class="row">
+
                                     <div class="col-6 border-end">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Категорії</h6>
                                         <ul class="list-unstyled mb-0 catalog-links">
-                                            <li><a href="/Catalog/Search?categories=1" class="text-decoration-none text-dark d-block py-1">Двигун</a></li>
-                                            <li><a href="/Catalog/Search?categories=2" class="text-decoration-none text-dark d-block py-1">Гальмівна система</a></li>
-                                            <li><a href="/Catalog/Search?categories=3" class="text-decoration-none text-dark d-block py-1">Фільтри</a></li>
-                                            <li><a href="/Catalog/Search?categories=4" class="text-decoration-none text-dark d-block py-1">Електрика</a></li>
+                                            @{
+                                                var menuCategories = DbContext.Categories.Take(6).ToList();
+                                            }
+                                            @foreach (var cat in menuCategories)
+                                            {
+                                                <li><a href="/Catalog/Search?categories=@cat.Id" class="text-decoration-none text-dark d-block py-1">@cat.Name</a></li>
+                                            }
+                                            <li><a href="/Catalog/Search" class="text-danger text-decoration-none small fw-bold d-block mt-2">Всі категорії <i class="fa-solid fa-arrow-right"></i></a></li>
                                         </ul>
                                     </div>
+
                                     <div class="col-6 ps-4">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-star me-2"></i>Популярні бренди</h6>
                                         <ul class="list-unstyled mb-0 catalog-links">
-                                            <li><a href="/Catalog/Search?brands=1" class="text-decoration-none text-dark d-block py-1">Bosch</a></li>
-                                            <li><a href="/Catalog/Search?brands=2" class="text-decoration-none text-dark d-block py-1">Brembo</a></li>
-                                            <li><a href="/Catalog/Search?brands=3" class="text-decoration-none text-dark d-block py-1">Mann-Filter</a></li>
-                                            <li><a href="/Catalog/Search?brands=4" class="text-decoration-none text-dark d-block py-1">Valeo</a></li>
+                                            @{
+                                                var menuBrands = DbContext.Brands.Take(6).ToList();
+                                            }
+                                            @foreach (var brand in menuBrands)
+                                            {
+                                                <li><a href="/Catalog/Search?brands=@brand.Id" class="text-decoration-none text-dark d-block py-1">@brand.Name</a></li>
+                                            }
+                                            <li><a href="/Catalog/Search" class="text-danger text-decoration-none small fw-bold d-block mt-2">Всі бренди <i class="fa-solid fa-arrow-right"></i></a></li>
                                         </ul>
                                     </div>
+
                                 </div>
                             </div>
                         </li>
@@ -89,16 +103,19 @@
                         <li><a href="#">Про нас</a></li>
                         <li><a href="#">Доставка і оплата</a></li>
                         <li><a href="#">Повернення товару</a></li>
-                        <li><a href="#">Контакти</a></li>
+                        <li><a asp-controller="Contact" asp-action="Index">Контакти</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h5 class="text-white mb-3">Каталог</h5>
                     <ul class="list-unstyled footer-links small">
-                        <li><a href="#">Двигун</a></li>
-                        <li><a href="#">Гальмівна система</a></li>
-                        <li><a href="#">Ходова частина</a></li>
-                        <li><a href="#">Електрика</a></li>
+                        @{
+                            var footerCategories = DbContext.Categories.Take(4).ToList();
+                        }
+                        @foreach (var cat in footerCategories)
+                        {
+                            <li><a href="/Catalog/Search?categories=@cat.Id">@cat.Name</a></li>
+                        }
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
@@ -117,7 +134,7 @@
         </div>
         <div class="footer-bottom">
             <div class="container d-flex justify-content-between align-items-center py-3 flex-wrap">
-                <p class="text-muted small mb-0">&copy; 2026 Autoparts. Всі права захищені.</p>
+                <p class="text-muted small mb-0">&copy; 2026 AutoParts. Всі права захищені.</p>
                 <div>
                     <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Visa_Inc._logo_%282005%E2%80%932014%29.svg" height="20" class="me-2 bg-white rounded p-1" alt="Visa">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/MasterCard_early_1990s_logo.png" height="20" class="bg-white rounded p-1" alt="Mastercard">

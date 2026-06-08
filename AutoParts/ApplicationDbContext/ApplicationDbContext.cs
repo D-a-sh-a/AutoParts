@@ -23,6 +23,7 @@ namespace AutoParts.Data
 		public DbSet<Engine> Engines { get; set; }
 		public DbSet<Vehicle> Vehicles { get; set; }
 		public DbSet<Brand> Brands { get; set; }
+		public DbSet<CartItem> CartItems { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
