@@ -25,12 +25,14 @@
                     </svg>
                     <span class="fw-bold text-dark fs-4">AUTO<span class="text-danger">PARTS</span></span>
                 </a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav">
                         <li class="nav-item dropdown catalog-dropdown">
                             <a class="nav-link text-dark fw-bold" href="/Catalog/Search" id="catalogMenuLink">
                                 Каталог <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
@@ -71,6 +73,16 @@
                         </li>
                     </ul>
 
+                    <div class="mx-auto px-3" style="max-width: 450px; width: 100%;">
+                        <form asp-controller="Catalog" asp-action="Search" method="get" class="w-100 m-0">
+                            <div class="input-group input-group-sm rounded border border-secondary-subtle bg-light">
+                                <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                                <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" class="form-control border-0 bg-transparent shadow-none" placeholder="Пошук запчастин...">
+                                <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold">ЗНАЙТИ</button>
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="d-flex align-items-center gap-4 ms-auto mt-2 mt-sm-0 me-2">
                         <a href="/Profile" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
                             <i class="fa-regular fa-user fs-5 mb-1"></i>
@@ -102,6 +114,7 @@
             </div>
         </nav>
     </header>
+
     <div class="container-fluid p-0">
         <main role="main">
             @RenderBody()
