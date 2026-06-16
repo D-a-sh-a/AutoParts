@@ -82,3 +82,14 @@
         });
     }
 });
+
+function resetPriceAndSubmit() {
+    var minInput = document.getElementById('minPriceInput');
+    var maxInput = document.getElementById('maxPriceInput');
+
+    if (minInput) minInput.disabled = true;
+    if (maxInput) maxInput.disabled = true;
+
+    var form = document.getElementById('filterForm');
+    if (form) form.submit();
+}

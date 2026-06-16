@@ -1,5 +1,18 @@
 ﻿@using AutoParts.Data
+@using Microsoft.AspNetCore.Http
 @inject ApplicationDbContext DbContext
+
+@{
+    int cartCount = 0;
+    var sessionCartId = Context.Session.GetString("CartId");
+
+    if (!string.IsNullOrEmpty(sessionCartId))
+    {
+        cartCount = DbContext.CartItems
+            .Where(c => c.CartId == sessionCartId)
+            .Sum(c => c.Quantity);
+    }
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -75,9 +88,27 @@
 
                     <div class="mx-auto px-3" style="max-width: 450px; width: 100%;">
                         <form asp-controller="Catalog" asp-action="Search" method="get" class="w-100 m-0">
+                            @if (!string.IsNullOrEmpty(Context.Request.Query["vehicleId"]))
+                            {
+                                <input type="hidden" name="vehicleId" value="@Context.Request.Query["vehicleId"]" />
+                            }
+
                             <div class="input-group input-group-sm rounded border border-secondary-subtle bg-light">
                                 <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                                 <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" class="form-control border-0 bg-transparent shadow-none" placeholder="Пошук запчастин...">
+
+                                @if (!string.IsNullOrEmpty(Context.Request.Query["searchTerm"]))
+                                {
+                                    var clearSearchUrl = "/Catalog/Search";
+                                    if (!string.IsNullOrEmpty(Context.Request.Query["vehicleId"]))
+                                    {
+                                        clearSearchUrl += "?vehicleId=" + Context.Request.Query["vehicleId"];
+                                    }
+
+                                    <a href="@clearSearchUrl" class="btn text-muted d-flex align-items-center border-0 px-2" title="Скасувати пошук">
+                                        <i class="fa-solid fa-xmark fs-6"></i>
+                                    </a>
+                                }
                                 <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold">ЗНАЙТИ</button>
                             </div>
                         </form>
@@ -103,7 +134,7 @@
                             <div class="position-relative">
                                 <i class="fa-solid fa-bag-shopping fs-5 mb-1"></i>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
-                                    0
+                                    @cartCount
                                 </span>
                             </div>
                             <span style="font-size: 0.75rem;" class="fw-semibold">Кошик</span>

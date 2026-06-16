@@ -2,6 +2,10 @@
 
 <div class="vehicle-filter-bar text-start shadow-lg">
     <form action="/Catalog/Search" method="get">
+        @if (!string.IsNullOrEmpty(Context.Request.Query["searchTerm"]))
+        {
+            <input type="hidden" name="searchTerm" value="@Context.Request.Query["searchTerm"]" />
+        }
         <div class="row g-2 align-items-end">
 
             <div class="col-md-2">

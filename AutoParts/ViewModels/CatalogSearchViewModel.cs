@@ -18,5 +18,6 @@ namespace AutoParts.ViewModels
 		public List<int> SelectedCategories { get; set; } = new();
 		public List<int> SelectedBrands { get; set; } = new();
 		public string? SelectedSortOrder { get; set; }
+		public string? SearchTerm { get; set; }
 	}
 }

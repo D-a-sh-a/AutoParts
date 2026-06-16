@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using AutoParts.Entities;
 using AutoParts.Models;
-using System.Reflection.Emit;
 
 namespace AutoParts.Data
 {
@@ -24,6 +23,8 @@ namespace AutoParts.Data
 		public DbSet<Vehicle> Vehicles { get; set; }
 		public DbSet<Brand> Brands { get; set; }
 		public DbSet<CartItem> CartItems { get; set; }
+		public DbSet<FavoriteItem> FavoriteItems { get; set; }
+		public DbSet<Customer> Customers { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
