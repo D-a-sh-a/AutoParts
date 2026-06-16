@@ -14,10 +14,11 @@ namespace AutoParts.Controllers
 			_context = context;
 		}
 
-		public async Task<IActionResult> Search(int? vehicleId, decimal? minPrice, decimal? maxPrice, List<int> categories, List<int> brands, string sortOrder)
+		public async Task<IActionResult> Search(string? searchTerm, int? vehicleId, decimal? minPrice, decimal? maxPrice, List<int> categories, List<int> brands, string sortOrder)
 		{
 			var viewModel = new CatalogSearchViewModel
 			{
+				SearchTerm = searchTerm,
 				SelectedVehicleId = vehicleId,
 				SelectedMinPrice = minPrice,
 				SelectedMaxPrice = maxPrice,
@@ -44,6 +45,17 @@ namespace AutoParts.Controllers
 				.Include(p => p.Category)
 				.Include(p => p.Brand)
 				.AsQueryable();
+
+			if (!string.IsNullOrWhiteSpace(searchTerm))
+			{
+				var term = searchTerm.ToLower().Trim();
+				query = query.Where(p =>
+					p.Name.ToLower().Contains(term) ||
+					(p.SKU != null && p.SKU.ToLower().Contains(term)) ||
+					(p.Brand != null && p.Brand.Name.ToLower().Contains(term)) ||
+					(p.Category != null && p.Category.Name.ToLower().Contains(term))
+				);
+			}
 
 			if (vehicleId.HasValue)
 			{

@@ -32,7 +32,13 @@
                         </h1>
                     </div>
                 </div>
-                <button class="btn btn-outline-secondary px-4 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#changeVehicleCollapse">Змінити авто</button>
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary px-4 fw-bold me-2" type="button" data-bs-toggle="collapse" data-bs-target="#changeVehicleCollapse">Змінити авто</button>
+
+                    <button type="button" class="btn btn-outline-danger px-3 fw-bold" title="Скинути авто" onclick="document.getElementById('hiddenVehicleId').value=''; document.getElementById('filterForm').submit();">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="collapse mt-3" id="changeVehicleCollapse">
@@ -47,7 +53,12 @@
         <div class="col-lg-3 mb-4">
             <div class="catalog-sidebar shadow-sm p-3 bg-white rounded border">
                 <form id="filterForm" method="get" asp-controller="Catalog" asp-action="Search">
-                    <input type="hidden" name="vehicleId" value="@Model.SelectedVehicleId" />
+                    <input type="hidden" name="vehicleId" value="@Model.SelectedVehicleId" id="hiddenVehicleId" />
+
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
+                    }
 
                     <div class="filter-section pb-2 border-bottom mb-3">
                         <h5 class="filter-title fw-bold mb-2">Ціна</h5>
@@ -67,7 +78,7 @@
                         {
                             var isChecked = Model.SelectedCategories.Contains(cat.Id) ? "checked" : "";
                             <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="categories" value="@cat.Id" id="cat_@cat.Id" @isChecked onchange="document.getElementById('filterForm').submit();">
+                                <input class="form-check-input" type="checkbox" name="categories" value="@cat.Id" id="cat_@cat.Id" @isChecked onchange="resetPriceAndSubmit();">
                                 <label class="form-check-label small" for="cat_@cat.Id">@cat.Name</label>
                             </div>
                         }
@@ -79,7 +90,7 @@
                         {
                             var isChecked = Model.SelectedBrands.Contains(brand.Id) ? "checked" : "";
                             <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" name="brands" value="@brand.Id" id="brand_@brand.Id" @isChecked onchange="document.getElementById('filterForm').submit();">
+                                <input class="form-check-input" type="checkbox" name="brands" value="@brand.Id" id="brand_@brand.Id" @isChecked onchange="resetPriceAndSubmit();">
                                 <label class="form-check-label small" for="brand_@brand.Id">@brand.Name</label>
                             </div>
                         }

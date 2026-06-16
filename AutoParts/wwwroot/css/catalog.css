@@ -53,3 +53,12 @@
     .price-input-visible[type=number] {
         -moz-appearance: textfield;
     }
+
+.out-of-stock {
+    opacity: 0.65;
+}
+
+    .out-of-stock .card-img-top,
+    .out-of-stock .bg-light {
+        filter: grayscale(100%);
+    }
