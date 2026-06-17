@@ -1,6 +1,70 @@
-﻿namespace AutoParts.Views.Account
-{
-    public class Register
-    {
-    }
+﻿@model AutoParts.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Реєстрація";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="text-center mb-4">
+                    <span class="fw-bold text-dark fs-3">AUTO<span class="text-danger">PARTS</span></span>
+                    <h5 class="text-muted mt-2">Реєстрація нового клієнта</h5>
+                </div>
+
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label small fw-bold"></label>
+                            <input asp-for="FirstName" class="form-control bg-light" placeholder="Іван" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label small fw-bold"></label>
+                            <input asp-for="LastName" class="form-control bg-light" placeholder="Іваненко" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label small fw-bold"></label>
+                        <input asp-for="Email" class="form-control bg-light" placeholder="ivan@example.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Phone" class="form-label small fw-bold"></label>
+                        <input asp-for="Phone" class="form-control bg-light" placeholder="+380991234567" />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label small fw-bold"></label>
+                        <input asp-for="Password" class="form-control bg-light" placeholder="Мінімум 6 символів" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ConfirmPassword" class="form-label small fw-bold"></label>
+                        <input asp-for="ConfirmPassword" class="form-control bg-light" placeholder="Повторіть пароль" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2 mb-3 shadow-sm">ЗАРЕЄСТРУВАТИСЯ</button>
+                </form>
+
+                <div class="text-center mt-2">
+                    <span class="small text-muted">Вже маєте акаунт? </span>
+                    <a asp-action="Login" class="small text-danger fw-bold text-decoration-none">Увійти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

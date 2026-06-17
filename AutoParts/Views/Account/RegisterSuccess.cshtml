@@ -1,0 +1,50 @@
+﻿@{
+    ViewData["Title"] = "Реєстрація успішна";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center py-5">
+        <div class="col-md-6 text-center">
+            <div class="card border-0 shadow-sm p-5" style="border-radius: 16px;">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger text-white rounded-circle shadow-sm" style="width: 80px; height: 80px; background-color: #ef233c !important;">
+                        <i class="fa-regular fa-envelope-open display-6"></i>
+                    </div>
+                </div>
+
+                <h2 class="fw-bold text-dark mb-3">Реєстрація майже завершена!</h2>
+                <p class="text-muted mb-4 fs-6" style="line-height: 1.6;">
+                    Дякуємо за реєстрацію в <span class="fw-bold text-dark">AUTO<span class="text-danger">PARTS</span></span>.
+                    Ми відправили лист для підтвердження вашого акаунта на адресу:
+                </p>
+
+                <div class="p-3 mb-4 rounded fw-bold text-dark bg-light" style="border-radius: 8px; font-size: 1.1rem; border-left: 4px solid #ef233c;">
+                    <i class="fa-regular fa-envelope text-muted me-2"></i> @ViewBag.Email
+                </div>
+
+                <div class="text-start bg-light p-3 rounded mb-4" style="border-radius: 8px; font-size: 0.9rem;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-circle-info text-danger me-1"></i> Що робити далі?</h6>
+                    <ol class="m-0 ps-3 text-muted" style="line-height: 1.5;">
+                        <li>Увійдіть у свою поштову скриньку.</li>
+                        <li>Знайдіть лист від нашого магазину.</li>
+                        <li>Клікніть по посиланню <strong>"Підтвердити реєстрацію"</strong> всередині листа.</li>
+                    </ol>
+                </div>
+
+                <p class="small text-muted mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Не знайшли листа?
+                    Перевірте папку <strong>"Спам"</strong> або "Промоакції". Лист зазвичай приходить протягом 1-2 хвилин.
+                </p>
+
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center border-top pt-4">
+                    <a href="/" class="btn btn-danger fw-bold px-4 py-2 shadow-sm" style="border-radius: 8px; background-color: #ef233c; border: none;">
+                        На головну сторінку
+                    </a>
+                    <a href="javascript:window.location.reload();" class="btn btn-outline-secondary fw-bold px-4 py-2" style="border-radius: 8px;">
+                        <i class="fa-solid fa-rotate-right me-1"></i> Оновити сторінку
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
