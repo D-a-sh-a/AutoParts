@@ -1,0 +1,144 @@
+﻿@model AutoParts.Models.Customer
+
+@{
+    ViewData["Title"] = "Особистий кабінет";
+}
+
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-5 pb-2 border-bottom">
+        <i class="fa-solid fa-circle-user text-danger fs-2 me-3"></i>
+        <h2 class="fw-bold m-0">Особистий кабінет</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm p-4 text-center">
+                <div class="mb-3 position-relative d-inline-block mx-auto">
+                    <div class="bg-light text-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 90px; height: 90px;">
+                        <i class="fa-solid fa-user-gear display-5"></i>
+                    </div>
+                </div>
+
+                <h4 class="fw-bold text-dark mb-1">@Model.FirstName @Model.LastName</h4>
+                <span class="badge bg-danger mb-4 px-3 py-1 bg-opacity-10 text-danger" style="font-size: 0.8rem; font-weight: 600;">Постійний клієнт</span>
+
+                <div class="text-start border-top pt-3 w-100">
+                    <div class="mb-3">
+                        <small class="text-muted d-block fw-bold small">Електронна пошта</small>
+                        <span class="text-dark"><i class="fa-regular fa-envelope text-muted me-2"></i>@Model.Email</span>
+                    </div>
+                    <div class="mb-4">
+                        <small class="text-muted d-block fw-bold small">Номер телефону</small>
+                        <span class="text-dark"><i class="fa-solid fa-phone text-muted me-2"></i>@Model.Phone</span>
+                    </div>
+                </div>
+
+                <form asp-controller="Account" asp-action="Logout" method="post" class="w-100 border-top pt-3">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-secondary w-100 fw-bold py-2" style="border-radius: 8px;">
+                        <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Вийти з акаунта
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-clock-history text-danger me-2"></i> Історія ваших замовлень</h5>
+
+                @if (Model.Orders == null || !Model.Orders.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-box-open text-muted display-2 mb-3 d-block"></i>
+                        <h5 class="text-muted fw-normal">Ви ще не робили замовлень на нашому сайті</h5>
+                        <a href="/Catalog/Search" class="btn btn-danger btn-sm fw-bold px-4 mt-3" style="background-color: #ef233c; border-radius: 8px;">
+                            Зробити першу покупку
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="accordion" id="ordersAccordion">
+                        @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
+                        {
+                            // Визначаємо колір бейджа залежно від статусу замовлення
+                            string badgeClass = order.Status.ToString() switch
+                            {
+                                "Pending" => "bg-warning text-dark bg-opacity-25",
+                                "Completed" => "bg-success text-success bg-opacity-10",
+                                "Canceled" => "bg-danger text-danger bg-opacity-10",
+                                _ => "bg-secondary text-white"
+                            };
+
+                            string statusText = order.Status.ToString() switch
+                            {
+                                "Pending" => "В обробці",
+                                "Completed" => "Виконано",
+                                "Canceled" => "Скасовано",
+                                _ => order.Status.ToString()
+                            };
+
+                            <div class="accordion-item border-0 shadow-sm mb-3" style="border-radius: 10px; overflow: hidden;">
+                                <h2 class="accordion-header" id="heading-@order.Id">
+                                    <button class="accordion-button collapsed bg-white text-dark py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@order.Id" aria-expanded="false" aria-controls="collapse-@order.Id">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center w-100 pe-3">
+                                            <div>
+                                                <span class="fw-bold text-dark me-3">Замовлення #@order.Id</span>
+                                                <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i>@order.OrderDate.ToString("dd.MM.yyyy HH:mm")</small>
+                                            </div>
+                                            <div class="mt-2 mt-sm-0">
+                                                <span class="badge @badgeClass me-3 px-3 py-1" style="font-size: 0.8rem; font-weight: 600;">@statusText</span>
+                                                <span class="fw-bold text-danger">@order.TotalAmount.ToString("0") грн</span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+
+                                <div id="collapse-@order.Id" class="accordion-collapse collapse" aria-labelledby="heading-@order.Id" data-bs-parent="#ordersAccordion">
+                                    <div class="accordion-body bg-light bg-opacity-50 border-top">
+                                        <div class="mb-3 small">
+                                            <strong class="text-muted d-block mb-1">Адреса доставки:</strong>
+                                            <span class="text-dark"><i class="fa-solid fa-location-dot text-muted me-2"></i>@order.ShippingAddress</span>
+                                            @if (!string.IsNullOrEmpty(order.Comment))
+                                            {
+                                                <strong class="text-muted d-block mt-2 mb-1">Ваш коментар:</strong>
+                                                <span class="text-muted italic">«@order.Comment»</span>
+                                            }
+                                        </div>
+
+                                        <strong class="text-muted d-block small mb-2">Перелік товарів:</strong>
+                                        <div class="table-responsive bg-white rounded shadow-inner p-2">
+                                            <table class="table table-borderless table-sm m-0" style="font-size: 0.9rem;">
+                                                <thead>
+                                                    <tr class="text-muted border-bottom" style="font-size: 0.8rem;">
+                                                        <th>Назва запчастини</th>
+                                                        <th class="text-center">К-сть</th>
+                                                        <th class="text-end">Ціна</th>
+                                                        <th class="text-end">Сума</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var item in order.OrderItems)
+                                                    {
+                                                        <tr>
+                                                            <td class="text-dark py-2" style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                @item.AutoPart?.Name
+                                                            </td>
+                                                            <td class="text-center py-2 text-muted">@item.Quantity</td>
+                                                            <td class="text-end py-2">@item.UnitPrice.ToString("0") грн</td>
+                                                            <td class="text-end py-2 fw-semibold text-dark">@((item.Quantity * item.UnitPrice).ToString("0")) грн</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

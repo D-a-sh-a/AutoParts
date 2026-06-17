@@ -82,7 +82,9 @@
                         <span class="fw-bold fs-5">До сплати:</span>
                         <span class="fw-bold fs-5 text-danger">@Model.TotalSum.ToString("0") грн</span>
                     </div>
-                    <a href="/Order/Checkout" class="btn btn-search w-100 py-2 fs-5">ОФОРМИТИ ЗАМОВЛЕННЯ</a>
+                    <a asp-controller="Order" asp-action="Checkout" class="btn btn-danger fw-bold w-100 py-2 shadow-sm" style="background-color: #ef233c; border-radius: 8px;">
+                        ОФОРМИТИ ЗАМОВЛЕННЯ <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             </div>
         </div>

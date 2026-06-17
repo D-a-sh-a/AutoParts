@@ -1,6 +1,35 @@
-﻿namespace AutoParts.Views.UserItems
-{
-    public class Favorites
-    {
-    }
+﻿@model AutoParts.ViewModels.FavoritesViewModel
+
+@{
+    ViewData["Title"] = "Улюблені товари";
 }
+
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+        <i class="fa-solid fa-heart text-danger fs-3 me-3"></i>
+        <h2 class="fw-bold m-0">Улюблені запчастини</h2>
+        <span class="badge bg-secondary ms-3 fs-6">@Model.Items.Count</span>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fa-regular fa-heart text-muted display-1 mb-3 d-block"></i>
+            <h4 class="text-muted">Ваш список улюблених товарів порожній</h4>
+            <p class="text-muted small">Додавайте товари в улюблені, щоб не загубити їх.</p>
+            <a href="/Catalog/Search" class="btn btn-danger fw-bold px-4 mt-2">Перейти до каталогу</a>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            @foreach (var item in Model.Items)
+            {
+                if (item.AutoPart != null)
+                {
+                    <partial name="_ProductCard" model="item.AutoPart" />
+                }
+            }
+        </div>
+    }
+</div>
