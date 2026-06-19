@@ -1,5 +1,6 @@
 using AutoParts.Data;
 using AutoParts.Entities;
+using AutoParts.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,8 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<EmailService>();
 
 var app = builder.Build();
 

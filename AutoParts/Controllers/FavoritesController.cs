@@ -44,6 +44,8 @@ namespace AutoParts.Controllers
 			var favoriteItem = await _context.FavoriteItems
 				.FirstOrDefaultAsync(f => f.UserId == userId && f.AutoPartId == partId);
 
+			bool isAdded;
+
 			if (favoriteItem == null)
 			{
 				_context.FavoriteItems.Add(new FavoriteItem
@@ -51,21 +53,19 @@ namespace AutoParts.Controllers
 					UserId = userId,
 					AutoPartId = partId
 				});
+				isAdded = true;
 			}
 			else
 			{
 				_context.FavoriteItems.Remove(favoriteItem);
+				isAdded = false;
 			}
 
 			await _context.SaveChangesAsync();
-			return RedirectRequest();
-		}
 
-		private IActionResult RedirectRequest()
-		{
-			var referer = Request.Headers["Referer"].ToString();
-			if (!string.IsNullOrEmpty(referer)) return Redirect(referer);
-			return RedirectToAction("Index", "Home");
+			var totalCount = await _context.FavoriteItems.CountAsync(f => f.UserId == userId);
+
+			return Json(new { success = true, isAdded = isAdded, count = totalCount });
 		}
 	}
 }

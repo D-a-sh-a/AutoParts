@@ -8,7 +8,14 @@
 <div class="col">
     <div class="card product-card h-100 border-0 shadow-sm @outOfStockClass">
         <div class="product-img-wrapper p-3 text-center position-relative">
-            <button class="wishlist-btn" style="z-index: 10;"><i class="fa-regular fa-heart"></i></button>
+
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <button type="button" class="wishlist-btn favorite-btn" data-id="@Model.Id" style="z-index: 10; border: none; background: none; cursor: pointer;" title="Додати в улюблені">
+                    <i class="fa-regular fa-heart"></i>
+                </button>
+            }
+
             @{
                 bool hasImages = Model.ImageUrls != null && Model.ImageUrls.Any();
                 var firstImg = hasImages ? Model.ImageUrls.First() : null;
@@ -43,13 +50,9 @@
                 {
                     <span class="fs-5 fw-bold text-dark">@Model.Price.ToString("0") <span class="text-muted fs-6 fw-normal">грн</span></span>
 
-                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="m-0 p-0">
-                        <input type="hidden" name="partId" value="@Model.Id" />
-                        <input type="hidden" name="quantity" value="1" />
-                        <button type="submit" class="btn btn-light add-cart-btn rounded-circle d-flex align-items-center justify-content-center" title="В кошик">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-light add-cart-btn add-to-cart-btn rounded-circle d-flex align-items-center justify-content-center" data-id="@Model.Id" title="В кошик" style="cursor: pointer;">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </button>
                 }
                 else
                 {

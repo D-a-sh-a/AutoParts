@@ -1,12 +1,18 @@
-﻿using AutoParts.ViewModels;
+﻿using AutoParts.Services;
+using AutoParts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Net.Mail;
 
 namespace AutoParts.Controllers
 {
 	public class ContactController : Controller
 	{
+		private readonly EmailService _emailService;
+
+		public ContactController(EmailService emailService)
+		{
+			_emailService = emailService;
+		}
+
 		[HttpGet]
 		public IActionResult Index()
 		{
@@ -14,7 +20,7 @@ namespace AutoParts.Controllers
 		}
 
 		[HttpPost]
-		public IActionResult Index(ContactFormViewModel model)
+		public async Task<IActionResult> Index(ContactFormViewModel model)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -23,30 +29,18 @@ namespace AutoParts.Controllers
 
 			try
 			{
-				string fromEmail = "burian_ak21@nuwm.edu.ua";
-				string appPassword = "kvnfqouxzwmduror";
 				string toEmail = "burian_ak21@nuwm.edu.ua";
+				string subject = $"Нове повідомлення від {model.Name}";
+				string body = $"Ім'я: {model.Name}<br/>Email: {model.Email}<br/><br/>Повідомлення:<br/>{model.Message}";
 
-				MailMessage message = new MailMessage();
-				message.From = new MailAddress(fromEmail, "Autoparts Website");
-				message.To.Add(toEmail);
-				message.Subject = $"Нове повідомлення від {model.Name}";
-				message.Body = $"Ім'я: {model.Name}\nEmail: {model.Email}\n\nПовідомлення:\n{model.Message}";
-				message.IsBodyHtml = false;
-
-				using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-				{
-					smtp.Credentials = new NetworkCredential(fromEmail, appPassword);
-					smtp.EnableSsl = true;
-					smtp.Send(message);
-				}
+				await _emailService.SendEmailAsync(toEmail, subject, body);
 
 				TempData["SuccessMessage"] = "Дякуємо! Ваше повідомлення успішно відправлено.";
 				return RedirectToAction("Index");
 			}
 			catch (Exception ex)
 			{
-				ModelState.AddModelError("", "Вибачте, сталася помилка при відправці: " + ex.Message);
+				ModelState.AddModelError("", "Вибачте, झालीся помилка при відправці: " + ex.Message);
 				return View("~/Views/Home/Contacts.cshtml", model);
 			}
 		}
