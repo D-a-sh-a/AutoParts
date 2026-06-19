@@ -3,6 +3,7 @@ using AutoParts.Models;
 using AutoParts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AutoParts.Controllers
 {
@@ -30,8 +31,8 @@ namespace AutoParts.Controllers
 				Items = items
 			};
 
-            return View("~/Views/UserItems/Cart.cshtml", viewModel);
-        }
+			return View("~/Views/UserItems/Cart.cshtml", viewModel);
+		}
 
 		[HttpPost]
 		public async Task<IActionResult> AddToCart(int partId, int quantity = 1)
@@ -57,7 +58,48 @@ namespace AutoParts.Controllers
 			}
 
 			await _context.SaveChangesAsync();
-			return RedirectRequest();
+
+			var totalItemsCount = await _context.CartItems
+				.Where(c => c.CartId == cartId)
+				.SumAsync(c => c.Quantity);
+
+			return Json(new { success = true, count = totalItemsCount });
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GetCartAndFavoritesCount()
+		{
+			var cartId = GetCartId();
+
+			var cartCount = await _context.CartItems
+				.Where(c => c.CartId == cartId)
+				.SumAsync(c => c.Quantity);
+
+			var favoritesCount = 0;
+			var favoriteIds = new List<int>();
+
+			if (User.Identity != null && User.Identity.IsAuthenticated)
+			{
+				var userIdString = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+				if (!string.IsNullOrEmpty(userIdString))
+				{
+					int userId = int.Parse(userIdString);
+
+					var favItems = await _context.FavoriteItems
+						.Where(f => f.UserId == userId)
+						.ToListAsync();
+
+					favoritesCount = favItems.Count;
+					favoriteIds = favItems.Select(f => f.AutoPartId).ToList();
+				}
+			}
+
+			return Json(new
+			{
+				cartCount = cartCount,
+				favoritesCount = favoritesCount,
+				favoriteIds = favoriteIds
+			});
 		}
 
 		[HttpPost]
@@ -104,13 +146,6 @@ namespace AutoParts.Controllers
 				HttpContext.Session.SetString("CartId", cartId);
 			}
 			return cartId;
-		}
-
-		private IActionResult RedirectRequest()
-		{
-			var referer = Request.Headers["Referer"].ToString();
-			if (!string.IsNullOrEmpty(referer)) return Redirect(referer);
-			return RedirectToAction("Index", "Home");
 		}
 	}
 }

@@ -1,9 +1,10 @@
 ﻿using AutoParts.Entities;
 using AutoParts.Models;
+using AutoParts.Services;
 using AutoParts.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.EntityFrameworkCore;
 namespace AutoParts.Controllers
 {
 	public class AccountController : Controller
@@ -11,15 +12,18 @@ namespace AutoParts.Controllers
 		private readonly UserManager<DbUser> _userManager;
 		private readonly SignInManager<DbUser> _signInManager;
 		private readonly AutoParts.Data.ApplicationDbContext _context;
+		private readonly EmailService _emailService;
 
 		public AccountController(
 			UserManager<DbUser> userManager,
 			SignInManager<DbUser> signInManager,
-			AutoParts.Data.ApplicationDbContext context)
+			AutoParts.Data.ApplicationDbContext context,
+			EmailService emailService)
 		{
 			_userManager = userManager;
 			_signInManager = signInManager;
 			_context = context;
+			_emailService = emailService;
 		}
 
 		[HttpGet]
@@ -41,6 +45,12 @@ namespace AutoParts.Controllers
 			var user = await _userManager.FindByEmailAsync(model.Email);
 			if (user != null)
 			{
+				if (!await _userManager.IsEmailConfirmedAsync(user))
+				{
+					ModelState.AddModelError(string.Empty, "Ви не підтвердили свою електронну пошту. Будь ласка, перевірте скриньку.");
+					return View("~/Views/Account/Login.cshtml", model);
+				}
+
 				var result = await _signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, lockoutOnFailure: false);
 				if (result.Succeeded)
 				{
@@ -48,7 +58,13 @@ namespace AutoParts.Controllers
 					{
 						return Redirect(returnUrl);
 					}
-					return RedirectToAction("Index", "Home");
+
+					if (await _userManager.IsInRoleAsync(user, "Manager"))
+					{
+						return RedirectToAction("Index", "Manager");
+					}
+
+					return RedirectToAction("Index", "Account");
 				}
 			}
 
@@ -85,6 +101,8 @@ namespace AutoParts.Controllers
 
 			if (result.Succeeded)
 			{
+				await _userManager.AddToRoleAsync(user, "Client");
+
 				var customer = new Customer
 				{
 					FirstName = model.FirstName,
@@ -97,8 +115,32 @@ namespace AutoParts.Controllers
 				_context.Customers.Add(customer);
 				await _context.SaveChangesAsync();
 
-				await _signInManager.SignInAsync(user, isPersistent: false);
-				return RedirectToAction("Index", "Home");
+				var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+				var confirmationLink = Url.Action("ConfirmEmail", "Account",
+					new { userId = user.Id, token = token },
+					Request.Scheme);
+				string subject = "Підтвердження реєстрації - AUTOPARTS";
+				string body = $@"
+					<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;'>
+						<h2 style='color: #ef233c; text-align: center;'>AUTO<span style='color: #2b2d42;'>PARTS</span></h2>
+						<p>Вітаємо, {model.FirstName}!</p>
+						<p>Дякуємо за реєстрацію в нашому магазині автозапчастин. Для активації вашого акаунта, будь ласка, натисніть на кнопку нижче:</p>
+						<div style='text-align: center; margin: 30px 0;'>
+							<a href='{confirmationLink}' style='background-color: #ef233c; color: white; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;'>ПІДТВЕРДИТИ АКАУНТ</a>
+						</div>
+						<p style='font-size: 0.8rem; color: #777;'>Якщо ви не реєструвалися на нашому сайті, просто проігноруйте цей лист.</p>
+					</div>";
+
+				try
+				{
+					await _emailService.SendEmailAsync(model.Email, subject, body);
+				}
+				catch (Exception ex)
+				{
+					System.Diagnostics.Debug.WriteLine($"Помилка відправки листа: {ex.Message}");
+				}
+
+				return RedirectToAction("RegisterSuccess", new { email = model.Email });
 			}
 
 			foreach (var error in result.Errors)
@@ -107,6 +149,55 @@ namespace AutoParts.Controllers
 			}
 
 			return View("~/Views/Account/Register.cshtml", model);
+		}
+
+		[HttpGet]
+		public IActionResult RegisterSuccess(string email)
+		{
+			if (string.IsNullOrEmpty(email)) return RedirectToAction("Index", "Home");
+			ViewBag.Email = email;
+			return View("~/Views/Account/RegisterSuccess.cshtml");
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> ConfirmEmail(int userId, string token)
+		{
+			if (userId <= 0 || string.IsNullOrEmpty(token))
+			{
+				return RedirectToAction("Index", "Home");
+			}
+
+			var user = await _userManager.FindByIdAsync(userId.ToString());
+			if (user == null)
+			{
+				return NotFound($"Користувача з ID {userId} не знайдено.");
+			}
+
+			var result = await _userManager.ConfirmEmailAsync(user, token);
+			if (result.Succeeded)
+			{
+				return View("~/Views/Account/ConfirmEmailSuccess.cshtml");
+			}
+
+			ModelState.AddModelError("", "Посилання застаріло або є недійсним.");
+			return View("Error");
+		}
+
+		[Microsoft.AspNetCore.Authorization.Authorize]
+		[HttpGet]
+		public async Task<IActionResult> Index()
+		{
+			int userId = int.Parse(_userManager.GetUserId(User)!);
+
+			var customerData = await _context.Customers
+				.Include(c => c.Orders)
+					.ThenInclude(o => o.OrderItems)
+						.ThenInclude(oi => oi.AutoPart)
+				.FirstOrDefaultAsync(c => c.UserId == userId);
+
+			if (customerData == null) return RedirectToAction("Index", "Home");
+
+			return View("~/Views/Account/Index.cshtml", customerData);
 		}
 
 		[HttpPost]

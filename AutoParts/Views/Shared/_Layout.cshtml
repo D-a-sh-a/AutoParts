@@ -2,18 +2,6 @@
 @using Microsoft.AspNetCore.Http
 @inject ApplicationDbContext DbContext
 
-@{
-    int cartCount = 0;
-    var sessionCartId = Context.Session.GetString("CartId");
-
-    if (!string.IsNullOrEmpty(sessionCartId))
-    {
-        cartCount = DbContext.CartItems
-            .Where(c => c.CartId == sessionCartId)
-            .Sum(c => c.Quantity);
-    }
-}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +38,7 @@
                             <a class="nav-link text-dark fw-bold" href="/Catalog/Search" id="catalogMenuLink">
                                 Каталог <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
                             </a>
-                            <div class="dropdown-menu shadow-lg border-0 p-4 mt-0" aria-labelledby="catalogMenuLink" style="width: 500px;">
+                            <div class="dropdown-menu shadow-lg border-0 p-4 mt-0 catalog-dropdown-menu" aria-labelledby="catalogMenuLink">
                                 <div class="row">
                                     <div class="col-6 border-end">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Категорії</h6>
@@ -86,13 +74,12 @@
                         </li>
                     </ul>
 
-                    <div class="mx-auto px-3" style="max-width: 450px; width: 100%;">
+                    <div class="mx-auto px-3 search-form-container">
                         <form asp-controller="Catalog" asp-action="Search" method="get" class="w-100 m-0">
                             @if (!string.IsNullOrEmpty(Context.Request.Query["vehicleId"]))
                             {
                                 <input type="hidden" name="vehicleId" value="@Context.Request.Query["vehicleId"]" />
                             }
-
                             <div class="input-group input-group-sm rounded border border-secondary-subtle bg-light">
                                 <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                                 <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" class="form-control border-0 bg-transparent shadow-none" placeholder="Пошук запчастин...">
@@ -115,30 +102,52 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-4 ms-auto mt-2 mt-sm-0 me-2">
-                        <a asp-controller="Account" asp-action="Login" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
-                            <i class="fa-regular fa-user fs-5 mb-1"></i>
-                            <span style="font-size: 0.75rem;" class="fw-semibold">Кабінет</span>
-                        </a>
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            if (User.IsInRole("Manager"))
+                            {
+                                <a asp-controller="Manager" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                                    <i class="fa-solid fa-user-gear fs-5 mb-1 text-danger"></i>
+                                    <span class="fw-semibold nav-icon-label">Керування</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                                    <i class="fa-regular fa-circle-user fs-5 mb-1 text-danger"></i>
+                                    <span class="fw-semibold nav-icon-label">Кабінет</span>
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                                <i class="fa-regular fa-user fs-5 mb-1"></i>
+                                <span class="fw-semibold nav-icon-label">Кабінет</span>
+                            </a>
+                        }
 
-                        <a asp-controller="Favorites" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
-                            <div class="position-relative">
-                                <i class="fa-regular fa-heart fs-5 mb-1"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
-                                    0
-                                </span>
-                            </div>
-                            <span style="font-size: 0.75rem;" class="fw-semibold">Улюблені</span>
-                        </a>
+                        @if (!User.IsInRole("Manager"))
+                        {
+                            if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                <a asp-controller="Favorites" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                                    <div class="position-relative">
+                                        <i class="fa-regular fa-heart fs-5 mb-1"></i>
+                                        <span id="favorites-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger nav-icon-badge">0</span>
+                                    </div>
+                                    <span class="fw-semibold nav-icon-label">Улюблені</span>
+                                </a>
+                            }
 
-                        <a href="/Cart" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
-                            <div class="position-relative">
-                                <i class="fa-solid fa-bag-shopping fs-5 mb-1"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
-                                    @cartCount
-                                </span>
-                            </div>
-                            <span style="font-size: 0.75rem;" class="fw-semibold">Кошик</span>
-                        </a>
+                            <a href="/Cart" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                                <div class="position-relative">
+                                    <i class="fa-solid fa-bag-shopping fs-5 mb-1"></i>
+                                    <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger nav-icon-badge">0</span>
+                                </div>
+                                <span class="fw-semibold nav-icon-label">Кошик</span>
+                            </a>
+                        }
                     </div>
 
                 </div>
@@ -209,6 +218,7 @@
             </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
