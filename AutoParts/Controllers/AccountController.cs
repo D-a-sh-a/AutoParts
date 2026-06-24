@@ -1,4 +1,5 @@
 ﻿using AutoParts.Entities;
+using AutoParts.Enums;
 using AutoParts.Models;
 using AutoParts.Services;
 using AutoParts.ViewModels;
@@ -198,6 +199,45 @@ namespace AutoParts.Controllers
 			if (customerData == null) return RedirectToAction("Index", "Home");
 
 			return View("~/Views/Account/Index.cshtml", customerData);
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Microsoft.AspNetCore.Authorization.Authorize]
+		public async Task<IActionResult> CancelOrder([FromForm] CancelOrderViewModel model)
+		{
+			int userId = int.Parse(_userManager.GetUserId(User)!);
+
+			var order = await _context.Orders
+				.Include(o => o.Customer)
+				.FirstOrDefaultAsync(o => o.Id == model.OrderId && o.Customer!.UserId == userId);
+
+			if (order == null)
+				return Json(new { success = false, message = "Замовлення не знайдено або у вас немає до нього доступу." });
+
+			if (order.Status != OrderStatus.Pending)
+				return Json(new { success = false, message = "Можна скасувати тільки нові замовлення." });
+
+			order.Status = OrderStatus.Cancelled;
+			order.CancelReason = model.Reason;
+
+			if (model.Reason == CancelReason.Other && !string.IsNullOrWhiteSpace(model.CustomReason))
+			{
+				string cancelText = $"Причина скасування: {model.CustomReason}";
+
+				if (string.IsNullOrWhiteSpace(order.Comment))
+				{
+					order.Comment = cancelText;
+				}
+				else
+				{
+					order.Comment += $"\n\n{cancelText}";
+				}
+			}
+
+			await _context.SaveChangesAsync();
+
+			return Json(new { success = true, message = "Замовлення успішно скасовано." });
 		}
 
 		[HttpPost]
