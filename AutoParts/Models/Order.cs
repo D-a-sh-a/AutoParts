@@ -1,6 +1,7 @@
 ﻿using AutoParts.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace AutoParts.Models
 {
@@ -13,6 +14,11 @@ namespace AutoParts.Models
 
 		public string ShippingAddress { get; set; } = null!;
 		public string? Comment { get; set; }
+
+		[MaxLength(100)]
+		public string? TrackingNumber { get; set; }
+
+		public CancelReason? CancelReason { get; set; }
 
 		public int CustomerId { get; set; }
 		public virtual Customer? Customer { get; set; }

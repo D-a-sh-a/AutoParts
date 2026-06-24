@@ -11,9 +11,18 @@
 
             @if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                <button type="button" class="wishlist-btn favorite-btn" data-id="@Model.Id" style="z-index: 10; border: none; background: none; cursor: pointer;" title="Додати в улюблені">
-                    <i class="fa-regular fa-heart"></i>
-                </button>
+                if (User.IsInRole("Manager"))
+                {
+                    <button type="button" class="wishlist-btn" disabled style="z-index: 10; border: none; background: none; cursor: not-allowed; opacity: 0.5;" title="Менеджерам не потрібні улюблені">
+                        <i class="fa-regular fa-heart text-muted"></i>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="wishlist-btn favorite-btn" data-id="@Model.Id" style="z-index: 10; border: none; background: none; cursor: pointer;" title="Додати в улюблені">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                }
             }
 
             @{
@@ -50,9 +59,18 @@
                 {
                     <span class="fs-5 fw-bold text-dark">@Model.Price.ToString("0") <span class="text-muted fs-6 fw-normal">грн</span></span>
 
-                    <button type="button" class="btn btn-light add-cart-btn add-to-cart-btn rounded-circle d-flex align-items-center justify-content-center" data-id="@Model.Id" title="В кошик" style="cursor: pointer;">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                    </button>
+                    if (User.IsInRole("Manager"))
+                    {
+                        <button type="button" class="btn btn-light rounded-circle d-flex align-items-center justify-content-center" disabled title="Менеджери не оформлюють замовлення" style="opacity: 0.5; cursor: not-allowed;">
+                            <i class="fa-solid fa-cart-shopping text-muted"></i>
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-light add-cart-btn add-to-cart-btn rounded-circle d-flex align-items-center justify-content-center" data-id="@Model.Id" title="В кошик" style="cursor: pointer;">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </button>
+                    }
                 }
                 else
                 {
