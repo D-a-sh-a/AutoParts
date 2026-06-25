@@ -3,7 +3,7 @@
 @inject ApplicationDbContext DbContext
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,52 +17,41 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow fixed-top">
-            <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow fixed-top">
+            <div class="container-fluid px-3">
                 <a class="navbar-brand d-flex align-items-center text-decoration-none" href="@Url.Action("Index", "Home")">
                     <svg width="35" height="35" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2">
                         <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#ef233c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="#212529" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="#212529" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <span class="fw-bold text-dark fs-4">AUTO<span class="text-danger">PARTS</span></span>
                 </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarContent">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav">
+                <div class="collapse navbar-collapse" id="mainNavbarContent">
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item dropdown catalog-dropdown">
                             <a class="nav-link text-dark fw-bold" href="/Catalog/Search" id="catalogMenuLink">
                                 Каталог <i class="fa-solid fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
                             </a>
                             <div class="dropdown-menu shadow-lg border-0 p-4 mt-0 catalog-dropdown-menu" aria-labelledby="catalogMenuLink">
-                                <div class="row">
+                                <div class="row" style="width: 500px;">
                                     <div class="col-6 border-end">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-layer-group me-2"></i>Категорії</h6>
                                         <ul class="list-unstyled mb-0 catalog-links">
-                                            @{
-                                                var menuCategories = DbContext.Categories.Take(6).ToList();
-                                            }
-                                            @foreach (var cat in menuCategories)
-                                            {
-                                                <li><a href="/Catalog/Search?categories=@cat.Id" class="text-decoration-none text-dark d-block py-1">@cat.Name</a></li>
-                                            }
+                                            @{ var menuCategories = DbContext.Categories.Take(6).ToList(); }
+                                            @foreach (var cat in menuCategories) { <li><a href="/Catalog/Search?categories=@cat.Id" class="text-decoration-none text-dark d-block py-1">@cat.Name</a></li> }
                                             <li><a href="/Catalog/Search" class="text-danger text-decoration-none small fw-bold d-block mt-2">Всі категорії <i class="fa-solid fa-arrow-right"></i></a></li>
                                         </ul>
                                     </div>
                                     <div class="col-6 ps-4">
                                         <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-star me-2"></i>Популярні бренди</h6>
                                         <ul class="list-unstyled mb-0 catalog-links">
-                                            @{
-                                                var menuBrands = DbContext.Brands.Take(6).ToList();
-                                            }
-                                            @foreach (var brand in menuBrands)
-                                            {
-                                                <li><a href="/Catalog/Search?brands=@brand.Id" class="text-decoration-none text-dark d-block py-1">@brand.Name</a></li>
-                                            }
+                                            @{ var menuBrands = DbContext.Brands.Take(6).ToList(); }
+                                            @foreach (var brand in menuBrands) { <li><a href="/Catalog/Search?brands=@brand.Id" class="text-decoration-none text-dark d-block py-1">@brand.Name</a></li> }
                                             <li><a href="/Catalog/Search" class="text-danger text-decoration-none small fw-bold d-block mt-2">Всі бренди <i class="fa-solid fa-arrow-right"></i></a></li>
                                         </ul>
                                     </div>
@@ -74,82 +63,55 @@
                         </li>
                     </ul>
 
-                    <div class="mx-auto px-3 search-form-container">
+                    <div class="search-form-container mx-lg-3 flex-grow-1" style="max-width: 450px;">
                         <form asp-controller="Catalog" asp-action="Search" method="get" class="w-100 m-0">
-                            @if (!string.IsNullOrEmpty(Context.Request.Query["vehicleId"]))
-                            {
-                                <input type="hidden" name="vehicleId" value="@Context.Request.Query["vehicleId"]" />
-                            }
+                            @if (!string.IsNullOrEmpty(Context.Request.Query["vehicleId"])) { <input type="hidden" name="vehicleId" value="@Context.Request.Query["vehicleId"]" /> }
                             <div class="input-group input-group-sm rounded border border-secondary-subtle bg-light">
                                 <span class="input-group-text bg-transparent border-0 ps-3 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                                 <input type="text" name="searchTerm" value="@Context.Request.Query["searchTerm"]" class="form-control border-0 bg-transparent shadow-none" placeholder="Пошук запчастин...">
-
-                                @if (!string.IsNullOrEmpty(Context.Request.Query["searchTerm"]))
-                                {
-                                    var clearSearchUrl = "/Catalog/Search";
-                                    if (!string.IsNullOrEmpty(Context.Request.Query["vehicleId"]))
-                                    {
-                                        clearSearchUrl += "?vehicleId=" + Context.Request.Query["vehicleId"];
-                                    }
-
-                                    <a href="@clearSearchUrl" class="btn text-muted d-flex align-items-center border-0 px-2" title="Скасувати пошук">
-                                        <i class="fa-solid fa-xmark fs-6"></i>
-                                    </a>
-                                }
                                 <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold">ЗНАЙТИ</button>
                             </div>
                         </form>
                     </div>
 
-                    <div class="d-flex align-items-center gap-4 ms-auto mt-2 mt-sm-0 me-2">
+                    <div class="d-flex align-items-center gap-3 ms-auto mt-2 mt-lg-0">
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
-                            if (User.IsInRole("Manager"))
-                            {
-                                <a asp-controller="Manager" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
-                                    <i class="fa-solid fa-user-gear fs-5 mb-1 text-danger"></i>
-                                    <span class="fw-semibold nav-icon-label">Керування</span>
-                                </a>
-                            }
-                            else
-                            {
-                                <a asp-controller="Account" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
-                                    <i class="fa-regular fa-circle-user fs-5 mb-1 text-danger"></i>
-                                    <span class="fw-semibold nav-icon-label">Кабінет</span>
-                                </a>
-                            }
+                            <a asp-controller="@(User.IsInRole("Manager") ? "Manager" : "Account")" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
+                                <i class="fa-regular fa-circle-user fs-5 mb-1 text-danger"></i>
+                                <span class="fw-semibold nav-icon-label" style="font-size: 0.75rem;">Кабінет</span>
+                            </a>
                         }
                         else
                         {
                             <a asp-controller="Account" asp-action="Login" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
                                 <i class="fa-regular fa-user fs-5 mb-1"></i>
-                                <span class="fw-semibold nav-icon-label">Кабінет</span>
+                                <span class="fw-semibold nav-icon-label" style="font-size: 0.75rem;">Кабінет</span>
                             </a>
                         }
 
                         @if (!User.IsInRole("Manager"))
                         {
-                            if (User.Identity != null && User.Identity.IsAuthenticated)
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
                             {
                                 <a asp-controller="Favorites" asp-action="Index" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
                                     <div class="position-relative">
                                         <i class="fa-regular fa-heart fs-5 mb-1"></i>
-                                        <span id="favorites-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger nav-icon-badge">0</span>
+                                        <span id="favorites-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">0</span>
                                     </div>
-                                    <span class="fw-semibold nav-icon-label">Улюблені</span>
+                                    <span class="fw-semibold nav-icon-label" style="font-size: 0.75rem;">Улюблені</span>
                                 </a>
                             }
 
                             <a href="/Cart" class="text-decoration-none text-dark d-flex flex-column align-items-center user-nav-btn">
                                 <div class="position-relative">
                                     <i class="fa-solid fa-bag-shopping fs-5 mb-1"></i>
-                                    <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger nav-icon-badge">0</span>
+                                    <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">0</span>
                                 </div>
-                                <span class="fw-semibold nav-icon-label">Кошик</span>
+                                <span class="fw-semibold nav-icon-label" style="font-size: 0.75rem;">Кошик</span>
                             </a>
                         }
                     </div>
-
                 </div>
             </div>
         </nav>
@@ -161,68 +123,9 @@
         </main>
     </div>
 
-    <footer class="dark-footer mt-auto">
-        <div class="container pt-5 pb-4">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h4 class="text-white mb-3 fw-bold">AutoParts</h4>
-                    <p class="text-muted small">Ваш надійний партнер у світі автозапчастин.</p>
-                    <ul class="list-unstyled text-muted small">
-                        <li class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> м. Рівне, вул. Соборна, 1</li>
-                        <li class="mb-2"><i class="fa-solid fa-phone me-2"></i> +38 (099) 123-45-67</li>
-                        <li class="mb-2"><i class="fa-solid fa-envelope me-2"></i> burian_ak21@nuwm.edu.ua</li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-white mb-3">Інформація</h5>
-                    <ul class="list-unstyled footer-links small">
-                        <li><a href="#">Про нас</a></li>
-                        <li><a href="#">Доставка і оплата</a></li>
-                        <li><a href="#">Повернення товару</a></li>
-                        <li><a asp-controller="Contact" asp-action="Index">Контакти</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-white mb-3">Каталог</h5>
-                    <ul class="list-unstyled footer-links small">
-                        @{
-                            var footerCategories = DbContext.Categories.Take(4).ToList();
-                        }
-                        @foreach (var cat in footerCategories)
-                        {
-                            <li><a href="/Catalog/Search?categories=@cat.Id">@cat.Name</a></li>
-                        }
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="text-white mb-3">Завантажте додаток</h5>
-                    <div class="mb-4">
-                        <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" height="40"></a>
-                    </div>
-                    <h5 class="text-white mb-3">Ми в соцмережах</h5>
-                    <div class="social-icons">
-                        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="#"><i class="fa-brands fa-telegram"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <div class="container d-flex justify-content-between align-items-center py-3 flex-wrap">
-                <p class="text-muted small mb-0">&copy; 2026 AutoParts. Всі права захищені.</p>
-                <div>
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Visa_Inc._logo_%282005%E2%80%932014%29.svg" height="20" class="me-2 bg-white rounded p-1" alt="Visa">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/MasterCard_early_1990s_logo.png" height="20" class="bg-white rounded p-1" alt="Mastercard">
-                </div>
-            </div>
-        </div>
-    </footer>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,6 +1,169 @@
-﻿namespace AutoParts.Views.Manager
-{
-    public class Index
-    {
-    }
+﻿@model AutoParts.ViewModels.ManagerDashboardViewModel
+
+@{
+    ViewData["Title"] = "Панель управління";
 }
+
+<div class="container-fluid py-4 px-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold mb-1">Панель управління</h2>
+            <p class="text-muted">@(User.Identity.Name ?? "Менеджер"). Сьогодні @DateTime.Now.ToString("dd.MM.yyyy")</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Manager" asp-action="CreateOrder" class="btn btn-danger fw-bold px-4">
+                <i class="fa-solid fa-plus me-2"></i> Нове замовлення
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-secondary fw-bold px-4">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> Вийти
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="fa-solid fa-bell text-danger fs-4 me-3"></i>
+                    <h6 class="text-uppercase text-secondary mb-0 fw-bold small">Нові замовлення</h6>
+                </div>
+                <h3 class="fw-bold mb-0">@Model.NewOrdersCount</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <a asp-controller="Manager" asp-action="CreatePart" class="text-decoration-none text-dark">
+                <div class="card border-0 shadow-sm p-4 h-100 position-relative btn-search-wrapper" style="transition: transform 0.2s; cursor: pointer;">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-box text-danger fs-4 me-3"></i>
+                        <h6 class="text-uppercase text-secondary mb-0 fw-bold small">Товарів на сайті</h6>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-end">
+                        <h3 class="fw-bold mb-0">@Model.TotalPartsCount</h3>
+                        <small class="text-danger fw-bold mb-1">Додати картку <i class="fa-solid fa-arrow-right ms-1"></i></small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a asp-controller="Manager" asp-action="Inventory" asp-route-lowStockOnly="true" class="text-decoration-none text-dark">
+                <div class="card border-0 shadow-sm p-4 h-100" style="transition: transform 0.2s; cursor: pointer;">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-triangle-exclamation text-danger fs-4 me-3"></i>
+                        <h6 class="text-uppercase text-secondary mb-0 fw-bold small">Закінчуються</h6>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-end">
+                        <h3 class="fw-bold mb-0">@Model.LowStockCount</h3>
+                        <small class="text-danger fw-bold mb-1">Інвентаризація <i class="fa-solid fa-arrow-right ms-1"></i></small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold m-0">Керування замовленнями</h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small fw-bold text-uppercase">Сортувати за статусом:</span>
+            <select name="statusFilter" class="form-select form-select-sm border-0 shadow-sm" style="width: 200px; border-radius: 6px;">
+                <option value="">Усі замовлення</option>
+                <option value="Pending">В очікуванні</option>
+                <option value="Processing">В обробці</option>
+                <option value="Shipped">Відправлено</option>
+                <option value="Cancelled">Скасовано</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="accordion" id="ordersAccordion">
+        @foreach (var order in Model.RecentOrders)
+        {
+            <div class="accordion-item border-0 shadow-sm mb-3 rounded-3 overflow-hidden">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed py-3" type="button" data-bs-toggle="collapse" data-bs-target="#order-@order.Id">
+                        <div class="d-flex w-100 justify-content-between align-items-center pe-4">
+                            <span class="fw-bold" style="width: 150px;">#@order.Id</span>
+                            <span class="text-muted" style="width: 250px;">@order.CustomerName</span>
+                            <span class="fw-bold text-dark" style="width: 150px;">@order.TotalSum.ToString("0") грн</span>
+                            <span class="badge border text-dark bg-white">@order.Status</span>
+                        </div>
+                    </button>
+                </h2>
+                <div id="order-@order.Id" class="accordion-collapse collapse" data-bs-parent="#ordersAccordion">
+                    <div class="accordion-body bg-white border-top">
+                        <form asp-controller="Manager" asp-action="UpdateOrder" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="OrderId" value="@order.Id" />
+
+                            <div class="table-responsive rounded border mb-4">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead class="table-light text-secondary small text-uppercase">
+                                        <tr>
+                                            <th class="ps-3 py-2">Назва запчастини</th>
+                                            <th class="py-2">К-сть</th>
+                                            <th class="py-2">Ціна</th>
+                                            <th class="text-end pe-3 py-2">Дії</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="ps-3 fw-semibold">Приклад запчастини</td>
+                                            <td>
+                                                <input type="number" name="Quantity" class="form-control form-control-sm text-center" value="1" style="width: 70px;" />
+                                            </td>
+                                            <td>500 грн</td>
+                                            <td class="text-end pe-3">
+                                                <button type="button" class="btn btn-sm text-danger p-0"><i class="fa-solid fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="row g-3 align-items-end bg-light p-3 rounded border-start border-danger border-3 mx-0 mb-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Змінити статус</label>
+                                    <select name="Status" class="form-select form-select-sm">
+                                        <option value="Pending">В очікуванні</option>
+                                        <option value="Processing">В обробці</option>
+                                        <option value="Shipped">Відправлено</option>
+                                        <option value="Cancelled">Скасовано</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Номер ТТН (Нова Пошта / Укрпошта)</label>
+                                    <input type="text" name="TrackingNumber" class="form-control form-control-sm" placeholder="Введіть 14-значний номер..." />
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold">Причина скасування (якщо скасовано)</label>
+                                    <select name="CancelReason" class="form-select form-select-sm">
+                                        <option value="">-- Оберіть причину --</option>
+                                        <option value="NoStock">Немає в наявності на складі</option>
+                                        <option value="ClientRefused">Клієнт відмовився від замовлення</option>
+                                        <option value="IncorrectData">Некоректні дані покупця</option>
+                                        <option value="Other">Інша причина (вказати в коментарі)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3 text-end d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary fw-bold w-100 py-2">
+                                        <i class="fa-solid fa-plus me-1"></i> Додати товар
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-danger fw-bold w-100 py-2">
+                                        Зберегти
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

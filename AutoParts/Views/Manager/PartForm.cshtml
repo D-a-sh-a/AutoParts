@@ -1,0 +1,154 @@
+﻿@model AutoParts.ViewModels.ProductFormViewModel
+
+@{
+    bool isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Редагування товару" : "Додавання нового товару";
+}
+
+<div class="container py-5" style="max-width: 900px;">
+    <div class="d-flex align-items-center mb-5 border-bottom pb-3">
+        <a asp-controller="Manager" asp-action="Inventory" class="btn btn-light border btn-sm me-3" style="border-radius: 8px;">
+            <i class="fa-solid fa-arrow-left"></i> До списку
+        </a>
+        <h2 class="fw-bold m-0">@(isEdit ? "Редагування картки товару" : "Створення нової картки товару")</h2>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 mb-5">
+        <form asp-controller="Manager" asp-action="@(isEdit ? "EditPart" : "CreatePart")" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            @if (isEdit)
+            {
+                <input type="hidden" asp-for="Id" />
+            }
+
+            <div class="row g-4">
+                <div class="col-12">
+                    <label asp-for="Name" class="form-label small fw-bold text-muted">Назва запчастини / Деталі <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Наприклад: Фільтр масляний двигуна" required style="border-radius: 6px;" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Price" class="form-label small fw-bold text-muted">Ціна (грн) <span class="text-danger">*</span></label>
+                    <input asp-for="Price" type="number" step="0.01" class="form-control" placeholder="0.00" required style="border-radius: 6px;" />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="StockQuantity" class="form-label small fw-bold text-muted">Початкова кількість на складі <span class="text-danger">*</span></label>
+                    <input asp-for="StockQuantity" type="number" class="form-control" placeholder="0" required style="border-radius: 6px;" />
+                    <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CategoryId" class="form-label small fw-bold text-muted">Категорія товарів <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <select asp-for="CategoryId" class="form-select" required style="border-radius: 6px 0 0 6px;">
+                            <option value="" disabled selected>-- Оберіть категорію --</option>
+                            @foreach (var cat in (List<AutoParts.Models.Category>)ViewBag.Categories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                        <button type="button" class="btn btn-outline-danger fw-bold" data-bs-toggle="modal" data-bs-target="#categoryModal" style="border-radius: 0 6px 6px 0;">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="BrandId" class="form-label small fw-bold text-muted">Виробник / Бренд <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <select asp-for="BrandId" class="form-select" required style="border-radius: 6px 0 0 6px;">
+                            <option value="" disabled selected>-- Оберіть бренд --</option>
+                            @foreach (var brand in (List<AutoParts.Models.Brand>)ViewBag.Brands)
+                            {
+                                <option value="@brand.Id">@brand.Name</option>
+                            }
+                        </select>
+                        <button type="button" class="btn btn-outline-danger fw-bold" data-bs-toggle="modal" data-bs-target="#brandModal" style="border-radius: 0 6px 6px 0;">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="BrandId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label small fw-bold text-muted">Технічний опис / Характеристики</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Вкажіть розміри, сумісність з авто, матеріали..." style="border-radius: 6px;"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="ImageFiles" class="form-label small fw-bold text-muted">Фотографії запчастини</label>
+                    <input asp-for="ImageFiles" type="file" class="form-control" multiple accept="image/*" style="border-radius: 6px;" />
+                    <small class="text-muted d-block mt-1">Можна обрати декілька зображень одночасно.</small>
+                </div>
+
+                @if (isEdit && Model.ExistingImageUrls != null && Model.ExistingImageUrls.Any())
+                {
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted d-block">Поточні зображення:</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var url in Model.ExistingImageUrls)
+                            {
+                                <div class="position-relative border rounded overflow-hidden" style="width: 80px; height: 80px;">
+                                    <img src="@url" class="w-100 h-100" style="object-fit: cover;" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="col-12 text-end border-top pt-4 mt-4">
+                    <a asp-controller="Manager" asp-action="Inventory" class="btn btn-sm btn-outline-secondary px-4 me-2" style="border-radius: 6px;">Скасувати</a>
+                    <button type="submit" class="btn btn-sm btn-danger fw-bold px-5" style="background-color: #ef233c; border-radius: 6px;">
+                        @(isEdit ? "Зберегти зміни" : "Опублікувати товар")
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white py-2">
+                <h6 class="modal-title fw-bold"><i class="fa-solid fa-folder-plus me-2"></i>Нова категорія</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <form asp-controller="Manager" asp-action="CreateCategory" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Назва категорії</label>
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="Напр: Підвіска" required style="border-radius: 4px;" />
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-danger w-100 fw-bold" style="background-color: #ef233c; border-radius: 4px;">Створити категорію</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="brandModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white py-2">
+                <h6 class="modal-title fw-bold"><i class="fa-solid fa-copyright me-2"></i>Новий бренд</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <form asp-controller="Manager" asp-action="CreateBrand" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Назва бренду / виробника</label>
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="Напр: Bosch" required style="border-radius: 4px;" />
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-danger w-100 fw-bold" style="background-color: #ef233c; border-radius: 4px;">Створити бренд</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
