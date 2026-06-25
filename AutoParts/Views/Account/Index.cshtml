@@ -12,7 +12,8 @@
 
     <div class="row">
         <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm p-4 text-center">
+
+            <div class="card border-0 shadow-sm p-4 text-center mb-4">
                 <div class="mb-3 position-relative d-inline-block mx-auto">
                     <div class="bg-light text-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 90px; height: 90px;">
                         <i class="fa-solid fa-user-gear display-5"></i>
@@ -39,6 +40,16 @@
                     </button>
                 </form>
             </div>
+
+            <div class="card border-0 shadow-sm p-4 text-center">
+                <h6 class="fw-bold mb-3 text-dark text-start border-bottom pb-2">
+                    <i class="fa-solid fa-shield-halved text-danger me-2"></i> Безпека
+                </h6>
+                <button type="button" class="btn btn-outline-danger w-100 fw-bold py-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal" style="border-radius: 8px;">
+                    <i class="fa-solid fa-key me-2"></i> Змінити пароль
+                </button>
+            </div>
+
         </div>
 
         <div class="col-lg-8">
@@ -60,7 +71,6 @@
                     <div class="accordion" id="ordersAccordion">
                         @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate))
                         {
-                            // Визначаємо колір бейджа залежно від статусу замовлення
                             string badgeClass = order.Status.ToString() switch
                             {
                                 "Pending" => "bg-warning text-dark bg-opacity-25",
@@ -95,22 +105,23 @@
 
                                 <div id="collapse-@order.Id" class="accordion-collapse collapse" aria-labelledby="heading-@order.Id" data-bs-parent="#ordersAccordion">
                                     <div class="accordion-body bg-light bg-opacity-50 border-top">
-                                        <div class="mb-3 small">
+
+                                        <div class="mb-3 small text-start">
                                             <strong class="text-muted d-block mb-1">Адреса доставки:</strong>
                                             <span class="text-dark"><i class="fa-solid fa-location-dot text-muted me-2"></i>@order.ShippingAddress</span>
                                             @if (!string.IsNullOrEmpty(order.Comment))
                                             {
                                                 <strong class="text-muted d-block mt-2 mb-1">Ваш коментар:</strong>
-                                                <span class="text-muted italic">«@order.Comment»</span>
+                                                <span class="text-muted fst-italic">«@order.Comment»</span>
                                             }
                                         </div>
 
-                                        <strong class="text-muted d-block small mb-2">Перелік товарів:</strong>
+                                        <strong class="text-muted d-block small mb-2 text-start">Перелік товарів:</strong>
                                         <div class="table-responsive bg-white rounded shadow-inner p-2">
                                             <table class="table table-borderless table-sm m-0" style="font-size: 0.9rem;">
                                                 <thead>
                                                     <tr class="text-muted border-bottom" style="font-size: 0.8rem;">
-                                                        <th>Назва запчастини</th>
+                                                        <th class="text-start">Назва запчастини</th>
                                                         <th class="text-center">К-сть</th>
                                                         <th class="text-end">Ціна</th>
                                                         <th class="text-end">Сума</th>
@@ -120,7 +131,7 @@
                                                     @foreach (var item in order.OrderItems)
                                                     {
                                                         <tr>
-                                                            <td class="text-dark py-2" style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                            <td class="text-dark py-2 text-start" style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                                 @item.AutoPart?.Name
                                                             </td>
                                                             <td class="text-center py-2 text-muted">@item.Quantity</td>
@@ -131,12 +142,98 @@
                                                 </tbody>
                                             </table>
                                         </div>
+
+                                        @if (order.Status == AutoParts.Enums.OrderStatus.Pending)
+                                        {
+                                            <div class="mt-3 text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-danger cancel-order-btn" data-order-id="@order.Id" data-bs-toggle="modal" data-bs-target="#cancelOrderModal" style="border-radius: 6px;">
+                                                    Скасувати замовлення
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         }
                     </div>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="cancelOrderModalLabel"><i class="fa-solid fa-triangle-exclamation me-2"></i>Скасування замовлення</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start">
+                <form id="cancelOrderForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="cancelOrderId" name="OrderId" />
+
+                    <p>Ви впевнені, що хочете скасувати замовлення <strong id="cancelOrderNumber"></strong>?</p>
+
+                    <div class="mb-3">
+                        <label for="cancelReason" class="form-label fw-bold">Оберіть причину скасування <span class="text-danger">*</span></label>
+                        <select class="form-select" id="cancelReason" name="Reason" required>
+                            <option value="" disabled selected>-- Оберіть причину --</option>
+                            <option value="1">Змінилися плани (Передумав)</option>
+                            <option value="2">Знайшов дешевше в іншому місці</option>
+                            <option value="3">Не влаштовують терміни доставки</option>
+                            <option value="4">Замовив помилково</option>
+                            <option value="99">Інша причина</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="customReasonContainer">
+                        <label for="customReason" class="form-label">Будь ласка, вкажіть причину <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="customReason" name="CustomReason" rows="2" placeholder="Напишіть тут..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 6px;">Ні, залишити</button>
+                        <button type="submit" class="btn btn-danger" style="border-radius: 6px; background-color: #ef233c;">Так, скасувати</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="changePasswordModalLabel"><i class="fa-solid fa-key me-2"></i>Зміна пароля</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start p-4">
+                <form asp-controller="Account" asp-action="ChangePassword" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted mb-1">Поточний пароль</label>
+                        <input type="password" name="OldPassword" class="form-control" style="border-radius: 6px;" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted mb-1">Новий пароль</label>
+                        <input type="password" name="NewPassword" class="form-control" style="border-radius: 6px;" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted mb-1">Підтвердження пароля</label>
+                        <input type="password" name="ConfirmPassword" class="form-control" style="border-radius: 6px;" required />
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 6px;">Скасувати</button>
+                        <button type="submit" class="btn btn-danger fw-bold" style="border-radius: 6px; background-color: #ef233c;">Зберегти пароль</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
