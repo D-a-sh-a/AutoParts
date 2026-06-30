@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoParts.Enums;
+using System;
 using System.Collections.Generic;
 
 namespace AutoParts.ViewModels
@@ -19,5 +20,7 @@ namespace AutoParts.ViewModels
 		public DateTime OrderDate { get; set; }
 		public decimal TotalSum { get; set; }
 		public string Status { get; set; } = null!;
+		public string? TrackingNumber { get; set; }
+		public CancelReason? CancelReason { get; set; }
 	}
 }

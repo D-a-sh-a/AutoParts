@@ -7,6 +7,7 @@ namespace AutoParts.ViewModels
 	public class ProductFormViewModel
 	{
 		public int Id { get; set; }
+		public string? SKU { get; set; }
 
 		[Required(ErrorMessage = "Назва товару є обов'язковою")]
 		[StringLength(200)]
@@ -21,6 +22,7 @@ namespace AutoParts.ViewModels
 		public int StockQuantity { get; set; }
 
 		public string? Description { get; set; }
+		public List<int> SelectedVehicleIds { get; set; } = new List<int>();
 
 		[Required(ErrorMessage = "Оберіть категорію")]
 		public int CategoryId { get; set; }

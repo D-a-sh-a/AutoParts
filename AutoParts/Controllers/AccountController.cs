@@ -3,9 +3,14 @@ using AutoParts.Enums;
 using AutoParts.Models;
 using AutoParts.Services;
 using AutoParts.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace AutoParts.Controllers
 {
 	public class AccountController : Controller
@@ -122,15 +127,15 @@ namespace AutoParts.Controllers
 					Request.Scheme);
 				string subject = "Підтвердження реєстрації - AUTOPARTS";
 				string body = $@"
-					<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;'>
-						<h2 style='color: #ef233c; text-align: center;'>AUTO<span style='color: #2b2d42;'>PARTS</span></h2>
-						<p>Вітаємо, {model.FirstName}!</p>
-						<p>Дякуємо за реєстрацію в нашому магазині автозапчастин. Для активації вашого акаунта, будь ласка, натисніть на кнопку нижче:</p>
-						<div style='text-align: center; margin: 30px 0;'>
-							<a href='{confirmationLink}' style='background-color: #ef233c; color: white; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;'>ПІДТВЕРДИТИ АКАУНТ</a>
-						</div>
-						<p style='font-size: 0.8rem; color: #777;'>Якщо ви не реєструвалися на нашому сайті, просто проігноруйте цей лист.</p>
-					</div>";
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;'>
+                        <h2 style='color: #ef233c; text-align: center;'>AUTO<span style='color: #2b2d42;'>PARTS</span></h2>
+                        <p>Вітаємо, {model.FirstName}!</p>
+                        <p>Дякуємо за реєстрацію в нашому магазині автозапчастин. Для активації вашого акаунта, будь ласка, натисніть на кнопку нижче:</p>
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{confirmationLink}' style='background-color: #ef233c; color: white; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;'>ПІДТВЕРДИТИ АКАУНТ</a>
+                        </div>
+                        <p style='font-size: 0.8rem; color: #777;'>Якщо ви не реєструвалися на нашому сайті, просто проігноруйте цей лист.</p>
+                    </div>";
 
 				try
 				{
@@ -184,7 +189,7 @@ namespace AutoParts.Controllers
 			return View("Error");
 		}
 
-		[Microsoft.AspNetCore.Authorization.Authorize]
+		[Authorize]
 		[HttpGet]
 		public async Task<IActionResult> Index()
 		{
@@ -203,7 +208,7 @@ namespace AutoParts.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		[Microsoft.AspNetCore.Authorization.Authorize]
+		[Authorize]
 		public async Task<IActionResult> CancelOrder([FromForm] CancelOrderViewModel model)
 		{
 			int userId = int.Parse(_userManager.GetUserId(User)!);
@@ -246,6 +251,37 @@ namespace AutoParts.Controllers
 		{
 			await _signInManager.SignOutAsync();
 			return RedirectToAction("Index", "Home");
+		}
+
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize]
+		public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword, string confirmPassword)
+		{
+			if (newPassword != confirmPassword)
+			{
+				return Json(new { success = false, message = "Новий пароль та підтвердження не збігаються." });
+			}
+
+			var user = await _userManager.GetUserAsync(User);
+			if (user == null)
+			{
+				return Json(new { success = false, message = "Помилка авторизації. Користувача не знайдено." });
+			}
+
+			var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+
+			if (result.Succeeded)
+			{
+				await _signInManager.RefreshSignInAsync(user);
+
+				return Json(new { success = true, message = "Пароль успішно оновлено!" });
+			}
+			else
+			{
+				var errorMsg = string.Join("<br/>", result.Errors.Select(e => e.Description));
+				return Json(new { success = false, message = errorMsg });
+			}
 		}
 	}
 }
