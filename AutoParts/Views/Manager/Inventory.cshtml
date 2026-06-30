@@ -12,98 +12,77 @@
         <h2 class="fw-bold m-0">Інвентаризація та залишки</h2>
     </div>
 
-    <div class="card border-0 shadow-sm p-4 mb-4">
-        <form asp-controller="Manager" asp-action="Inventory" method="get" class="row g-3 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label small fw-bold text-muted">Пошук за назвою запчастини</label>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" name="searchTerm" class="form-control border-start-0" placeholder="Введіть назву для пошуку..." value="@Context.Request.Query["searchTerm"]" style="border-radius: 0 6px 6px 0;" />
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-check form-switch mb-2">
-                    <input class="form-check-input" type="checkbox" name="lowStockOnly" id="lowStockCheck" value="true" @(Context.Request.Query["lowStockOnly"] == "true" ? "checked" : "") style="cursor: pointer;">
-                    <label class="form-check-label small fw-bold text-muted" for="lowStockCheck" style="cursor: pointer;">
-                        Показувати лише дефіцит (≤ 5 шт.)
-                    </label>
-                </div>
-            </div>
-            <div class="col-md-3 text-end">
-                <button type="submit" class="btn btn-sm btn-danger fw-bold w-100 py-2" style="background-color: #ef233c; border-radius: 6px;">
-                    Застосувати фільтри
-                </button>
-            </div>
-        </form>
-    </div>
+    <form id="inventory-form" asp-controller="Manager" asp-action="UpdateAllStock" method="post">
+        @Html.AntiForgeryToken()
 
-    <div class="card border-0 shadow-sm overflow-hidden">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-light text-secondary small text-uppercase">
-                    <tr>
-                        <th class="ps-4 py-3" style="width: 80px;">ID</th>
-                        <th class="py-3">Назва запчастини</th>
-                        <th class="py-3">Категорія</th>
-                        <th class="py-3">Бренд</th>
-                        <th class="py-3 text-center" style="width: 150px;">Кількість</th>
-                        <th class="py-3" style="width: 150px;">Ціна</th>
-                        <th class="text-end pe-4 py-3" style="width: 180px;">Дії</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var part in Model)
-                    {
-                        bool isLowStock = part.StockQuantity <= 5;
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <div class="card border-0 shadow-sm p-3 w-75">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Пошук запчастини</label>
+                        <input type="text" name="searchTerm" class="form-control form-control-sm" placeholder="Введіть назву..." value="@Context.Request.Query["searchTerm"]" />
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="lowStockOnly" id="lowStockCheck" value="true" @(Context.Request.Query["lowStockOnly"] == "true" ? "checked" : "")>
+                            <label class="form-check-label small fw-bold text-muted" for="lowStockCheck">Лише дефіцит (≤ 5)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" asp-controller="Manager" asp-action="Inventory" formmethod="get" class="btn btn-sm btn-outline-secondary w-100">Пошук</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-danger px-4 py-2 fw-bold shadow-sm">
+                <i class="fa-solid fa-floppy-disk me-2"></i> Зберегти всі зміни
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light text-secondary small text-uppercase">
                         <tr>
-                            <td class="ps-4 fw-bold text-secondary">#@part.Id</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    @if (part.ImageUrls != null && part.ImageUrls.Any())
-                                    {
-                                        <img src="@part.ImageUrls.First()" class="rounded border me-3" style="width: 45px; height: 45px; object-fit: cover;" />
-                                    }
-                                    else
-                                    {
-                                        <div class="bg-light text-secondary rounded d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
-                                            <i class="fa-solid fa-image"></i>
-                                        </div>
-                                    }
-                                    <span class="fw-semibold text-dark">@part.Name</span>
-                                </div>
-                            </td>
-                            <td><span class="badge bg-light border text-dark">@part.Category?.Name</span></td>
-                            <td><span class="badge bg-light border text-dark">@part.Brand?.Name</span></td>
-                            <td class="text-center">
-                                <form asp-controller="Manager" asp-action="UpdateStock" method="post" class="d-flex align-items-center justify-content-center gap-2 m-0">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="PartId" value="@part.Id" />
-                                    <input type="number" name="NewQuantity" class="form-control form-control-sm text-center fw-bold @(isLowStock ? "text-danger border-danger" : "text-dark")" value="@part.StockQuantity" style="width: 70px;" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary p-1" title="Зберегти кількість"><i class="fa-solid fa-check"></i></button>
-                                </form>
-                                @if (isLowStock)
-                                {
-                                    <small class="text-danger fw-bold d-block mt-1" style="font-size: 0.7rem;"><i class="fa-solid fa-triangle-exclamation"></i> Закінчується!</small>
-                                }
-                            </td>
-                            <td class="fw-bold">@part.Price.ToString("0") грн</td>
-                            <td class="text-end pe-4">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a asp-controller="Manager" asp-action="EditPart" asp-route-id="@part.Id" class="btn btn-sm btn-outline-secondary" title="Редагувати">
+                            <th class="py-3 ps-4">Назва запчастини</th>
+                            <th class="py-3">Категорія</th>
+                            <th class="py-3 text-center" style="width: 120px;">Ціна (₴)</th>
+                            <th class="py-3 text-center" style="width: 120px;">Кількість</th>
+                            <th class="py-3 text-end pe-4" style="width: 100px;">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var part in Model)
+                        {
+                            bool isLowStock = part.StockQuantity <= 5;
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-semibold text-dark d-block">@part.Name</span>
+                                    <span class="text-muted small">SKU: @(string.IsNullOrEmpty(part.SKU) ? "—" : part.SKU)</span>
+                                </td>
+                                <td><span class="badge bg-light border text-dark">@part.Category?.Name</span></td>
+
+                                <td class="text-center">
+                                    <input type="number" step="0.01" name="prices[@part.Id]" class="form-control form-control-sm text-center fw-bold text-dark" value="@part.Price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" style="width: 90px; display: inline-block;" />
+                                </td>
+
+                                <td class="text-center">
+                                    <input type="number" name="stocks[@part.Id]" class="form-control form-control-sm text-center fw-bold @(isLowStock ? "text-danger" : "text-dark")" value="@part.StockQuantity" style="width: 70px; display: inline-block;" />
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="EditPart" asp-route-id="@part.Id" class="btn btn-sm btn-outline-secondary" title="Редагувати детально">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
-                                    <form asp-controller="Manager" asp-action="DeletePart" asp-route-id="@part.Id" method="post" class="m-0">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Видалити" onclick="return confirm('Ви впевнені, що хочете видалити цей товар?');">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
+
+@section Scripts {
+    <script src="~/js/manager.js" asp-append-version="true"></script>
+}

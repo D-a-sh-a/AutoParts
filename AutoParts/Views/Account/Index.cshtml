@@ -49,7 +49,6 @@
                     <i class="fa-solid fa-key me-2"></i> Змінити пароль
                 </button>
             </div>
-
         </div>
 
         <div class="col-lg-8">
@@ -170,7 +169,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-start">
-                <form id="cancelOrderForm">
+                <form id="cancelOrderForm" method="post" action="/Account/CancelOrder">
                     @Html.AntiForgeryToken()
                     <input type="hidden" id="cancelOrderId" name="OrderId" />
 
@@ -180,11 +179,9 @@
                         <label for="cancelReason" class="form-label fw-bold">Оберіть причину скасування <span class="text-danger">*</span></label>
                         <select class="form-select" id="cancelReason" name="Reason" required>
                             <option value="" disabled selected>-- Оберіть причину --</option>
-                            <option value="1">Змінилися плани (Передумав)</option>
-                            <option value="2">Знайшов дешевше в іншому місці</option>
-                            <option value="3">Не влаштовують терміни доставки</option>
-                            <option value="4">Замовив помилково</option>
-                            <option value="99">Інша причина</option>
+                            <option value="ClientRefused">Змінилися плани (Передумав)</option>
+                            <option value="IncorrectData">Замовив помилково</option>
+                            <option value="Other">Інша причина</option>
                         </select>
                     </div>
 
@@ -238,3 +235,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/account.js" asp-append-version="true"></script>
+}

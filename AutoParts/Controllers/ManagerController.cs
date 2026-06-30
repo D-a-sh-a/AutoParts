@@ -1,4 +1,5 @@
 ﻿using AutoParts.Data;
+using AutoParts.Entities;
 using AutoParts.Enums;
 using AutoParts.Models;
 using AutoParts.Services;
@@ -25,11 +26,7 @@ namespace AutoParts.Controllers
 		private readonly IWebHostEnvironment _webHostEnvironment;
 		private readonly ILogger<ManagerController> _logger;
 
-		public ManagerController(
-			ApplicationDbContext context,
-			EmailService emailService,
-			IWebHostEnvironment webHostEnvironment,
-			ILogger<ManagerController> logger)
+		public ManagerController(ApplicationDbContext context, EmailService emailService, IWebHostEnvironment webHostEnvironment, ILogger<ManagerController> logger)
 		{
 			_context = context;
 			_emailService = emailService;
@@ -37,189 +34,232 @@ namespace AutoParts.Controllers
 			_logger = logger;
 		}
 
-		[HttpGet]
-		public async Task<IActionResult> Index()
+		// --- ДОПОМІЖНІ МЕТОДИ ---
+		public static string GetStatusDisplayName(string status) => status switch
 		{
-			var newOrdersCount = await _context.Orders.CountAsync(o => o.Status == OrderStatus.Pending);
-			var totalPartsCount = await _context.AutoParts.CountAsync();
-			var lowStockCount = await _context.AutoParts.CountAsync(p => p.StockQuantity <= 5);
+			"Pending" => "В очікуванні",
+			"Processing" => "В обробці",
+			"Shipped" => "Відправлено",
+			"Completed" => "Виконано",
+			"Cancelled" => "Скасовано",
+			_ => status
+		};
 
-			var rawOrders = await _context.Orders
-				.Include(o => o.Customer)
-				.OrderByDescending(o => o.OrderDate)
-				.Take(10)
-				.ToListAsync();
+		public static string GetCancelReasonDisplayName(CancelReason reason) => reason switch
+		{
+			CancelReason.ChangedMind => "Передумав",
+			CancelReason.FoundCheaper => "Знайшов дешевше",
+			CancelReason.DeliveryTooLong => "Довга доставка",
+			CancelReason.OrderedByMistake => "Помилкове замовлення",
+			CancelReason.OutOfStock => "Немає в наявності",
+			CancelReason.Other => "Інше",
+			_ => "Не обрано"
+		};
 
-			var recentOrders = rawOrders.Select(o => new ManagerDashboardOrderViewModel
+		private async Task<List<string>> UploadImages(List<IFormFile>? files)
+		{
+			var urls = new List<string>();
+			if (files == null || !files.Any()) return urls;
+			string folder = Path.Combine(_webHostEnvironment.WebRootPath, "images/products");
+			if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+			foreach (var f in files)
 			{
-				Id = o.Id,
-				CustomerName = o.Customer != null ? $"{o.Customer.FirstName} {o.Customer.LastName}" : "Невідомо",
-				OrderDate = o.OrderDate,
-				TotalSum = o.TotalAmount,
-				Status = GetOrderStatusName(o.Status)
-			}).ToList();
+				string name = Guid.NewGuid() + Path.GetExtension(f.FileName);
+				using var fs = new FileStream(Path.Combine(folder, name), FileMode.Create);
+				await f.CopyToAsync(fs);
+				urls.Add("/images/products/" + name);
+			}
+			return urls;
+		}
+
+		// ==========================================
+		// ЗАМОВЛЕННЯ
+		// ==========================================
+		[HttpGet]
+		public async Task<IActionResult> Index(OrderStatus? statusFilter)
+		{
+			var query = _context.Orders.Include(o => o.Customer).AsQueryable();
+			if (statusFilter.HasValue) query = query.Where(o => o.Status == statusFilter.Value);
+
+			var rawOrders = await query.OrderByDescending(o => o.OrderDate).Take(20).ToListAsync();
 
 			var viewModel = new ManagerDashboardViewModel
 			{
-				NewOrdersCount = newOrdersCount,
-				TotalPartsCount = totalPartsCount,
-				LowStockCount = lowStockCount,
-				RecentOrders = recentOrders
+				NewOrdersCount = await _context.Orders.CountAsync(o => o.Status == OrderStatus.Pending),
+				TotalPartsCount = await _context.AutoParts.CountAsync(),
+				LowStockCount = await _context.AutoParts.CountAsync(p => p.StockQuantity <= 5),
+				RecentOrders = rawOrders.Select(o => new ManagerDashboardOrderViewModel
+				{
+					Id = o.Id,
+					CustomerName = o.Customer != null ? $"{o.Customer.FirstName} {o.Customer.LastName}" : "Невідомо",
+					OrderDate = o.OrderDate,
+					TotalSum = o.TotalAmount,
+					Status = GetStatusDisplayName(o.Status.ToString()),
+					TrackingNumber = o.TrackingNumber,
+					CancelReason = o.CancelReason
+				}).ToList()
 			};
-
 			return View("~/Views/Manager/Index.cshtml", viewModel);
 		}
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> ShipOrder([FromForm] ShipOrderViewModel model)
+		[HttpGet]
+		public async Task<IActionResult> EditOrder(int id)
 		{
 			var order = await _context.Orders
+				.Include(o => o.OrderItems).ThenInclude(oi => oi.AutoPart)
 				.Include(o => o.Customer)
-				.FirstOrDefaultAsync(o => o.Id == model.OrderId);
+				.FirstOrDefaultAsync(o => o.Id == id);
 
-			if (order == null) return Json(new { success = false, message = "Замовлення не знайдено." });
+			if (order == null) return NotFound();
 
-			order.Status = OrderStatus.Shipped;
-			order.TrackingNumber = model.TrackingNumber;
-
-			await _context.SaveChangesAsync();
-
-			if (order.Customer != null && !string.IsNullOrEmpty(order.Customer.Email))
-			{
-				string subject = $"Ваше замовлення #{order.Id} відправлено!";
-				string body = $@"
-                    <h2 style='color: #ef233c;'>AUTO<span style='color: #2b2d42;'>PARTS</span></h2>
-                    <p>Вітаємо, {order.Customer.FirstName}!</p>
-                    <p>Ваше замовлення <b>#{order.Id}</b> було успішно передано в службу доставки.</p>
-                    <p><b>Номер накладної (ТТН):</b> <span style='font-size: 1.2rem; background: #eee; padding: 5px; font-weight: bold;'>{model.TrackingNumber}</span></p>
-                    <p>Ви можете відстежувати його у своєму кабінеті на сайті.</p>";
-
-				try
-				{
-					await _emailService.SendEmailAsync(order.Customer.Email, subject, body);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, $"Помилка відправки листа з ТТН для замовлення #{order.Id} на пошту {order.Customer.Email}");
-				}
-			}
-
-			return Json(new { success = true, message = "Статус оновлено, ТТН збережено, лист надіслано!" });
+			ViewBag.AvailableParts = await _context.AutoParts.OrderBy(p => p.Name).ToListAsync();
+			return View("~/Views/Manager/EditOrder.cshtml", order);
 		}
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> CancelOrderManager([FromForm] CancelOrderViewModel model)
+		public async Task<IActionResult> EditOrder(Order model, string? customReason)
 		{
-			var order = await _context.Orders.FindAsync(model.OrderId);
-			if (order == null) return Json(new { success = false, message = "Замовлення не знайдено." });
+			var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == model.Id);
+			if (order == null) return NotFound();
 
-			order.Status = OrderStatus.Cancelled;
-			order.CancelReason = model.Reason;
+			if (order.Status == OrderStatus.Completed) return RedirectToAction("Index");
 
-			if (model.Reason == CancelReason.Other && !string.IsNullOrWhiteSpace(model.CustomReason))
+			if (order.Status == OrderStatus.Shipped)
 			{
-				string cancelText = $"Причина скасування (Менеджер): {model.CustomReason}";
+				if (model.Status == OrderStatus.Cancelled)
+				{
+					order.Status = OrderStatus.Cancelled;
+					order.CancelReason = model.CancelReason;
+					if (model.CancelReason == CancelReason.Other)
+						order.Comment = !string.IsNullOrWhiteSpace(customReason) ? customReason : order.Comment;
+				}
+			}
+			else
+			{
+				order.Status = model.Status;
+				order.TrackingNumber = model.TrackingNumber;
+				order.CancelReason = model.CancelReason;
 
-				if (string.IsNullOrWhiteSpace(order.Comment))
+				if (model.Status == OrderStatus.Cancelled && model.CancelReason == CancelReason.Other)
+					order.Comment = !string.IsNullOrWhiteSpace(customReason) ? customReason : order.Comment;
+
+				if (model.OrderItems != null)
 				{
-					order.Comment = cancelText;
+					foreach (var item in model.OrderItems)
+					{
+						var dbItem = order.OrderItems.FirstOrDefault(oi => oi.Id == item.Id);
+						if (dbItem != null) dbItem.Quantity = item.Quantity;
+					}
 				}
-				else
-				{
-					order.Comment += $"\n\n{cancelText}";
-				}
+				order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.UnitPrice);
 			}
 
 			await _context.SaveChangesAsync();
-			return Json(new { success = true, message = "Замовлення скасовано менеджером." });
+			return RedirectToAction("Index");
 		}
 
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> AddOrderItem(int orderId, int partId, int quantity)
+		{
+			var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == orderId);
+			if (order == null || order.Status == OrderStatus.Completed || order.Status == OrderStatus.Shipped)
+				return RedirectToAction("EditOrder", new { id = orderId });
+
+			var part = await _context.AutoParts.FindAsync(partId);
+			if (part == null) return NotFound();
+
+			var existingItem = order.OrderItems.FirstOrDefault(oi => oi.AutoPartId == partId);
+			if (existingItem != null)
+			{
+				existingItem.Quantity += quantity;
+			}
+			else
+			{
+				var newItem = new OrderItem
+				{
+					OrderId = orderId,
+					AutoPartId = partId,
+					Quantity = quantity,
+					UnitPrice = part.Price
+				};
+				_context.OrderItems.Add(newItem);
+				order.OrderItems.Add(newItem);
+			}
+
+			order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.UnitPrice);
+			await _context.SaveChangesAsync();
+			return RedirectToAction("EditOrder", new { id = orderId });
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> RemoveOrderItem(int orderItemId)
+		{
+			var item = await _context.OrderItems.Include(oi => oi.Order).FirstOrDefaultAsync(oi => oi.Id == orderItemId);
+			if (item != null)
+			{
+				var order = item.Order;
+				_context.OrderItems.Remove(item);
+				if (order != null) order.TotalAmount -= (item.Quantity * item.UnitPrice);
+				await _context.SaveChangesAsync();
+				return Json(new { success = true });
+			}
+			return Json(new { success = false });
+		}
+
+		// ==========================================
+		// ІНВЕНТАРИЗАЦІЯ
+		// ==========================================
 		[HttpGet]
 		public async Task<IActionResult> Inventory(string? searchTerm, bool lowStockOnly = false)
 		{
-			var query = _context.AutoParts
-				.Include(p => p.Category)
-				.Include(p => p.Brand)
-				.AsQueryable();
+			var query = _context.AutoParts.Include(p => p.Category).Include(p => p.Brand).AsQueryable();
+			if (!string.IsNullOrEmpty(searchTerm)) query = query.Where(p => p.Name.Contains(searchTerm));
+			if (lowStockOnly) query = query.Where(p => p.StockQuantity <= 5);
 
-			if (!string.IsNullOrEmpty(searchTerm))
-			{
-				query = query.Where(p => p.Name.Contains(searchTerm));
-			}
-
-			if (lowStockOnly)
-			{
-				query = query.Where(p => p.StockQuantity <= 5);
-			}
-
-			var items = await query.OrderBy(p => p.Name).ToListAsync();
-			return View("~/Views/Manager/Inventory.cshtml", items);
+			return View("~/Views/Manager/Inventory.cshtml", await query.OrderBy(p => p.Name).ToListAsync());
 		}
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> UpdateStock([FromForm] UpdateStockViewModel model)
+		public async Task<IActionResult> UpdateAllStock(Dictionary<int, int> stocks, Dictionary<int, decimal> prices)
 		{
-			if (model.NewQuantity < 0)
+			foreach (var entry in stocks)
 			{
-				return Json(new { success = false, message = "Кількість не може бути від'ємною." });
+				var part = await _context.AutoParts.FindAsync(entry.Key);
+				if (part != null)
+				{
+					part.StockQuantity = entry.Value;
+					if (prices.TryGetValue(entry.Key, out decimal newPrice) && newPrice > 0)
+					{
+						part.Price = newPrice;
+					}
+				}
 			}
-
-			var part = await _context.AutoParts.FindAsync(model.PartId);
-			if (part == null)
-			{
-				return Json(new { success = false, message = "Запчастину не знайдено." });
-			}
-
-			part.StockQuantity = model.NewQuantity;
 			await _context.SaveChangesAsync();
-
-			return Json(new { success = true, message = $"Кількість '{part.Name}' змінено на {part.StockQuantity} шт." });
+			return Json(new { success = true, message = "Залишки та ціни успішно оновлено!" });
 		}
 
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> CreateCategory(string name)
+		// ==========================================
+		// ТОВАРИ (СТВОРЕННЯ ТА РЕДАГУВАННЯ)
+		// ==========================================
+
+		// Метод для заповнення ViewBag (щоб не дублювати код)
+		private async Task LoadDropdownDataAsync()
 		{
-			if (string.IsNullOrWhiteSpace(name))
-				return Json(new { success = false, message = "Назва не може бути порожньою." });
-
-			var exists = await _context.Categories.AnyAsync(c => c.Name.ToLower() == name.Trim().ToLower());
-			if (exists)
-				return Json(new { success = false, message = "Категорія вже існує." });
-
-			var category = new Category { Name = name.Trim() };
-			_context.Categories.Add(category);
-			await _context.SaveChangesAsync();
-
-			return Json(new { success = true, message = $"Категорію '{category.Name}' створено!" });
-		}
-
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> CreateBrand(string name)
-		{
-			if (string.IsNullOrWhiteSpace(name))
-				return Json(new { success = false, message = "Назва не може бути порожньою." });
-
-			var exists = await _context.Brands.AnyAsync(b => b.Name.ToLower() == name.Trim().ToLower());
-			if (exists)
-				return Json(new { success = false, message = "Бренд вже існує." });
-
-			var brand = new Brand { Name = name.Trim() };
-			_context.Brands.Add(brand);
-			await _context.SaveChangesAsync();
-
-			return Json(new { success = true, message = $"Бренд '{brand.Name}' створено!" });
+			ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
+			ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+			ViewBag.Vehicles = await _context.Vehicles
+				.Select(v => new { Id = v.Id, MakeName = v.Make.Name, ModelName = v.Model.Name, Year = v.Year })
+				.OrderBy(v => v.MakeName).ThenBy(v => v.ModelName)
+				.ToListAsync();
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> CreatePart()
 		{
-			ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-			ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+			await LoadDropdownDataAsync();
 			return View("~/Views/Manager/PartForm.cshtml", new ProductFormViewModel());
 		}
 
@@ -229,50 +269,58 @@ namespace AutoParts.Controllers
 		{
 			if (!ModelState.IsValid)
 			{
-				ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-				ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+				await LoadDropdownDataAsync();
 				return View("~/Views/Manager/PartForm.cshtml", model);
 			}
 
-			List<string> imageUrls = await UploadImages(model.ImageFiles);
-
 			var autoPart = new AutoPart
 			{
+				SKU = model.SKU,
 				Name = model.Name,
 				Price = model.Price,
 				StockQuantity = model.StockQuantity,
-				Description = model.Description,
+				Description = model.Description ?? "",
 				CategoryId = model.CategoryId,
 				BrandId = model.BrandId,
-				ImageUrls = imageUrls
+				ImageUrls = await UploadImages(model.ImageFiles)
 			};
+
+			if (model.SelectedVehicleIds != null && model.SelectedVehicleIds.Any())
+			{
+				autoPart.Vehicles = await _context.Vehicles
+					.Where(v => model.SelectedVehicleIds.Contains(v.Id))
+					.ToListAsync();
+			}
 
 			_context.AutoParts.Add(autoPart);
 			await _context.SaveChangesAsync();
-
 			return RedirectToAction("Inventory");
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> EditPart(int id)
 		{
-			var part = await _context.AutoParts.FindAsync(id);
+			var part = await _context.AutoParts
+				.Include(p => p.Vehicles)
+				.FirstOrDefaultAsync(p => p.Id == id);
+
 			if (part == null) return NotFound();
+
+			await LoadDropdownDataAsync();
 
 			var model = new ProductFormViewModel
 			{
 				Id = part.Id,
+				SKU = part.SKU,
 				Name = part.Name,
 				Price = part.Price,
 				StockQuantity = part.StockQuantity,
 				Description = part.Description,
 				CategoryId = part.CategoryId,
 				BrandId = part.BrandId ?? 0,
-				ExistingImageUrls = part.ImageUrls
+				ExistingImageUrls = part.ImageUrls,
+				SelectedVehicleIds = part.Vehicles?.Select(v => v.Id).ToList() ?? new List<int>()
 			};
-
-			ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-			ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
 
 			return View("~/Views/Manager/PartForm.cshtml", model);
 		}
@@ -283,89 +331,98 @@ namespace AutoParts.Controllers
 		{
 			if (!ModelState.IsValid)
 			{
-				ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-				ViewBag.Brands = await _context.Brands.OrderBy(b => b.Name).ToListAsync();
+				await LoadDropdownDataAsync();
 				return View("~/Views/Manager/PartForm.cshtml", model);
 			}
 
-			var part = await _context.AutoParts.FindAsync(model.Id);
+			var part = await _context.AutoParts
+				.Include(p => p.Vehicles)
+				.FirstOrDefaultAsync(p => p.Id == model.Id);
+
 			if (part == null) return NotFound();
 
+			part.SKU = model.SKU;
 			part.Name = model.Name;
 			part.Price = model.Price;
 			part.StockQuantity = model.StockQuantity;
-			part.Description = model.Description;
+			part.Description = model.Description ?? "";
 			part.CategoryId = model.CategoryId;
 			part.BrandId = model.BrandId;
 
 			if (model.ImageFiles != null && model.ImageFiles.Any())
 			{
-				List<string> newUrls = await UploadImages(model.ImageFiles);
-				part.ImageUrls ??= new List<string>();
-				part.ImageUrls.AddRange(newUrls);
+				part.ImageUrls = await UploadImages(model.ImageFiles);
 			}
 
-			_context.AutoParts.Update(part);
-			await _context.SaveChangesAsync();
+			if (part.Vehicles != null)
+			{
+				part.Vehicles.Clear();
+			}
+			else
+			{
+				part.Vehicles = new List<Vehicle>();
+			}
 
+			if (model.SelectedVehicleIds != null && model.SelectedVehicleIds.Any())
+			{
+				var selectedVehicles = await _context.Vehicles
+					.Where(v => model.SelectedVehicleIds.Contains(v.Id))
+					.ToListAsync();
+
+				foreach (var vehicle in selectedVehicles)
+				{
+					part.Vehicles.Add(vehicle);
+				}
+			}
+
+			await _context.SaveChangesAsync();
 			return RedirectToAction("Inventory");
 		}
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeletePart(int id)
+		public async Task<IActionResult> CreateCategory(string name)
 		{
-			var part = await _context.AutoParts.FindAsync(id);
-			if (part == null) return Json(new { success = false, message = "Товар не знайдено." });
+			if (string.IsNullOrWhiteSpace(name))
+			{
+				return Json(new { success = false, message = "Назва категорії не може бути порожньою." });
+			}
 
-			_context.AutoParts.Remove(part);
+			// Перевіряємо, чи немає вже такої категорії, щоб уникнути дублів
+			var existing = await _context.Categories.FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
+			if (existing != null)
+			{
+				return Json(new { success = false, message = "Така категорія вже існує." });
+			}
+
+			var category = new Category { Name = name };
+			_context.Categories.Add(category);
 			await _context.SaveChangesAsync();
 
-			return Json(new { success = true, message = "Товар успішно видалено." });
+			// Повертаємо JSON для нашого JavaScript (manager.js)
+			return Json(new { success = true, id = category.Id, name = category.Name });
 		}
 
-		private string GetOrderStatusName(OrderStatus status)
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> CreateBrand(string name)
 		{
-			return status switch
+			if (string.IsNullOrWhiteSpace(name))
 			{
-				OrderStatus.Pending => "В очікуванні",
-				OrderStatus.Processing => "В обробці",
-				OrderStatus.Shipped => "Відправлено",
-				OrderStatus.Completed => "Виконано",
-				OrderStatus.Cancelled => "Скасовано",
-				_ => "Невідомо"
-			};
-		}
-
-		private async Task<List<string>> UploadImages(List<IFormFile>? files)
-		{
-			var uploadedUrls = new List<string>();
-			if (files == null || !files.Any()) return uploadedUrls;
-
-			string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "products");
-
-			if (!Directory.Exists(uploadsFolder))
-			{
-				Directory.CreateDirectory(uploadsFolder);
+				return Json(new { success = false, message = "Назва бренду не може бути порожньою." });
 			}
 
-			foreach (var file in files)
+			var existing = await _context.Brands.FirstOrDefaultAsync(b => b.Name.ToLower() == name.ToLower());
+			if (existing != null)
 			{
-				if (file.Length > 0)
-				{
-					string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-					string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-					using (var fileStream = new FileStream(filePath, FileMode.Create))
-					{
-						await file.CopyToAsync(fileStream);
-					}
-
-					uploadedUrls.Add("/images/products/" + uniqueFileName);
-				}
+				return Json(new { success = false, message = "Такий бренд вже існує." });
 			}
 
-			return uploadedUrls;
+			var brand = new Brand { Name = name };
+			_context.Brands.Add(brand);
+			await _context.SaveChangesAsync();
+
+			return Json(new { success = true, id = brand.Id, name = brand.Name });
 		}
 	}
 }
