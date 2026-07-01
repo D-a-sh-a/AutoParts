@@ -1,0 +1,193 @@
+﻿@model AutoParts.Models.Order
+@{
+    ViewData["Title"] = "Редагування замовлення";
+
+    bool isCompleted = Model.Status == AutoParts.Enums.OrderStatus.Completed;
+    bool isShipped = Model.Status == AutoParts.Enums.OrderStatus.Shipped;
+    bool canEditItems = !isCompleted && !isShipped;
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm me-3"><i class="fa-solid fa-arrow-left"></i> Назад</a>
+            <h3 class="fw-bold m-0">Редагування замовлення #@Model.Id</h3>
+        </div>
+
+        @if (isCompleted)
+        {
+            <span class="badge bg-success fs-6"><i class="fa-solid fa-check-circle me-1"></i> Замовлення виконано (Редагування закрито)</span>
+        }
+    </div>
+
+    <form asp-action="EditOrder" method="post">
+        <input type="hidden" asp-for="Id" />
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold m-0">Товари в замовленні</h5>
+
+                        @if (canEditItems)
+                        {
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                                <i class="fa-solid fa-plus"></i> Додати товар
+                            </button>
+                        }
+                    </div>
+
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Товар</th>
+                                <th>Ціна</th>
+                                <th>К-сть</th>
+                                <th>Сума</th>
+                                @if (canEditItems)
+                                {
+                                    <th>Дії</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>@(item.AutoPart?.Name ?? "Товар видалено")</td>
+
+                                    <td class="text-muted">@item.UnitPrice.ToString("N2") ₴</td>
+
+                                    <td>
+                                        <input type="hidden" name="OrderItems.Index" value="@item.Id" />
+                                        <input type="hidden" name="OrderItems[@item.Id].Id" value="@item.Id" />
+
+                                        @if (canEditItems)
+                                        {
+                                            <input type="number" name="OrderItems[@item.Id].Quantity" value="@item.Quantity" class="form-control form-control-sm" style="width: 70px;" min="1" />
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold">@item.Quantity шт.</span>
+                                        }
+                                    </td>
+
+                                    <td class="fw-semibold">@((item.Quantity * item.UnitPrice).ToString("N2")) ₴</td>
+
+                                    @if (canEditItems)
+                                    {
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-item-btn" data-id="@item.Id">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="@(canEditItems ? 3 : 2)" class="text-end fw-bold">Загальна сума:</td>
+                                <td colspan="2" class="fw-bold fs-5 text-danger">@Model.TotalAmount.ToString("N2") ₴</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="fw-bold mb-3">Керування</h5>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Статус</label>
+                    <select asp-for="Status" class="form-select status-select" id="statusSelect" disabled="@(isCompleted ? "disabled" : null)">
+                        @foreach (var status in Enum.GetValues(typeof(AutoParts.Enums.OrderStatus)))
+                        {
+                            var statusEnum = (AutoParts.Enums.OrderStatus)status;
+
+                            if (isShipped && statusEnum != AutoParts.Enums.OrderStatus.Shipped && statusEnum != AutoParts.Enums.OrderStatus.Cancelled)
+                            {
+                                continue;
+                            }
+
+                            <option value="@status">@AutoParts.Controllers.ManagerController.GetStatusDisplayName(status.ToString())</option>
+                        }
+                    </select>
+                    @if (isCompleted)
+                    {
+                        <input type="hidden" name="Status" value="@Model.Status" />
+                    }
+                </div>
+
+                <div class="mb-3 d-none ttn-container" id="ttnContainer">
+                    <label class="form-label small fw-bold text-muted">Номер ТТН</label>
+                    <input asp-for="TrackingNumber" class="form-control" placeholder="Введіть номер..." readonly="@(isCompleted || isShipped ? "readonly" : null)" />
+                </div>
+
+                <div class="mb-3 d-none cancel-container" id="cancelContainer">
+                    <label class="form-label small fw-bold text-muted">Причина скасування</label>
+                    <select asp-for="CancelReason" class="form-select reason-select" id="reasonSelect" disabled="@(isCompleted ? "disabled" : null)">
+                        @foreach (var reason in Enum.GetValues(typeof(AutoParts.Enums.CancelReason)))
+                        {
+                            <option value="@reason">@AutoParts.Controllers.ManagerController.GetCancelReasonDisplayName((AutoParts.Enums.CancelReason)reason)</option>
+                        }
+                    </select>
+                </div>
+
+                @if (!isCompleted)
+                {
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Зберегти зміни</button>
+                }
+            </div>
+        </div>
+    </div>
+</form>
+</div>
+
+@if (canEditItems)
+{
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="AddOrderItem" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.Id" />
+
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Додати товар до замовлення</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Оберіть запчастину</label>
+                            <select name="partId" class="form-select select2-search" required style="width: 100%;">
+                                <option value="">-- Почніть вводити назву... --</option>
+                                @if (ViewBag.AvailableParts != null)
+                                {
+                                    foreach (var part in (IEnumerable<AutoParts.Models.AutoPart>)ViewBag.AvailableParts)
+                                    {
+                                        <option value="@part.Id">@part.Name (@part.Price грн)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Кількість</label>
+                            <input type="number" name="quantity" class="form-control" value="1" min="1" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Скасувати</button>
+                        <button type="submit" class="btn btn-primary px-4">Додати</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/manager.js" asp-append-version="true"></script>
+}

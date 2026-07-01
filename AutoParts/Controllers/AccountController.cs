@@ -105,23 +105,38 @@ namespace AutoParts.Controllers
 
 			var result = await _userManager.CreateAsync(user, model.Password);
 
-			if (result.Succeeded)
-			{
-				await _userManager.AddToRoleAsync(user, "Client");
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, "Client");
 
-				var customer = new Customer
-				{
-					FirstName = model.FirstName,
-					LastName = model.LastName,
-					Email = model.Email,
-					Phone = model.Phone,
-					UserId = user.Id
-				};
+                var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == model.Email);
 
-				_context.Customers.Add(customer);
-				await _context.SaveChangesAsync();
+                if (existingCustomer != null)
+                {
+                    existingCustomer.UserId = user.Id;
 
-				var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    existingCustomer.FirstName = model.FirstName;
+                    existingCustomer.LastName = model.LastName;
+                    existingCustomer.Phone = model.Phone;
+
+                    _context.Customers.Update(existingCustomer);
+                }
+                else
+                {
+                    var customer = new Customer
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Email,
+                        Phone = model.Phone,
+                        UserId = user.Id
+                    };
+                    _context.Customers.Add(customer);
+                }
+
+                await _context.SaveChangesAsync();
+
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 				var confirmationLink = Url.Action("ConfirmEmail", "Account",
 					new { userId = user.Id, token = token },
 					Request.Scheme);

@@ -1,0 +1,94 @@
+﻿@model AutoParts.ViewModels.CreateOrderViewModel
+
+@{
+    ViewData["Title"] = "Створення нового замовлення";
+}
+
+<div class="container py-4">
+    <div class="card border-0 shadow-sm p-4" style="max-width: 900px; margin: auto;">
+        <h5 class="fw-bold mb-4">Створення нового замовлення</h5>
+
+        <form asp-action="CreateOrder" method="post" id="createOrderForm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger fw-bold mb-3"></div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Оберіть клієнта</label>
+                <div class="input-group">
+                    <select name="CustomerId" id="CustomerId" class="form-select select2-search" required style="width: 85%;">
+                        <option value="">-- Почніть вводити ПІБ або Email --</option>
+                        @if (ViewBag.Customers != null)
+                        {
+                            @foreach (var customer in (IEnumerable<AutoParts.Models.Customer>)ViewBag.Customers)
+                            {
+                                <option value="@customer.Id">@customer.FirstName @customer.LastName (@customer.Email)</option>
+                            }
+                        }
+                    </select>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#customerModal">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Адреса доставки</label>
+                    <input type="text" name="ShippingAddress" class="form-control" required placeholder="Місто, відділення Нової Пошти..." />
+                </div>
+            </div>
+
+            <div id="orderItemsContainer" class="mb-4">
+                <label class="form-label fw-bold">Товари</label>
+                <div class="items-list" id="itemsList"></div>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addPartBtn">
+                    <i class="fa-solid fa-plus"></i> Додати товар
+                </button>
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Оформити замовлення</button>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h6 class="modal-title fw-bold">Додати нового клієнта</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-controller="Manager" asp-action="CreateCustomer" method="post" id="customerForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Ім'я</label>
+                        <input type="text" name="FirstName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Прізвище</label>
+                        <input type="text" name="LastName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" name="Email" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Телефон</label>
+                        <input type="text" name="Phone" class="form-control" required placeholder="+380..." />
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 fw-bold">Зберегти</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="parts-template" type="text/template">
+    @if (ViewBag.Parts != null)
+    {
+            @foreach (var part in (IEnumerable<AutoParts.Models.AutoPart>)ViewBag.Parts)
+            {
+                    <option value="@part.Id">[@part.SKU] @part.Name — @part.Price грн</option>
+            }
+    }
+</script>
+
+@section Scripts {
+    <script src="~/js/manager.js" asp-append-version="true"></script>
+}
